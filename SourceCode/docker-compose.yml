@@ -2,11 +2,19 @@ version: '3.8'
 
 services:
   Frontend:
-    image: nginx:latest
+    container_name: Peelback-Frontend
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
     ports:
       - "80:80"
+    depends_on:
+    - Backend
   
   Backend:
-    image: node:latest
+    container_name: Peelback-Backend
+    build:
+      context: ./backend
+      dockerfile: dockerfile
     ports:
       - "3000:3000"
