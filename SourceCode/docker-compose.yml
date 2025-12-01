@@ -1,20 +1,17 @@
-version: '3.8'
-
-services:
-  Frontend:
-    container_name: Peelback-Frontend
-    build:
-      context: ./frontend
-      dockerfile: dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-    - Backend
-  
-  Backend:
+services:  
+  backend:
     container_name: Peelback-Backend
     build:
       context: ./backend
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
+  frontend:
+    container_name: Peelback-Frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+    - backend

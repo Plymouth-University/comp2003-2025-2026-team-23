@@ -1,5 +1,6 @@
 FROM nginx:stable-alpine
 
+WORKDIR /frontend
 
 COPY . /usr/share/nginx/html
 
