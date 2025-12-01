@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  Frontend:
+    image: nginx:latest
+    ports:
+      - "80:80"
+  
+  Backend:
+    image: node:latest
+    ports:
+      - "3000:3000"
