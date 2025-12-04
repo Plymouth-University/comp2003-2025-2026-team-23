@@ -1,0 +1,54 @@
+/* Process Button */
+.btn-process {
+    background-color: #999;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.btn-process:not(:disabled):hover {
+    background-color: #666;
+    transform: scale(1.02);
+}
+
+.btn-process:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Progress Section */
+.progress-section {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.progress-section.active {
+    display: flex;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #4CAF50;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 13px;
+    color: #666;
+    text-align: center;
+}

@@ -1,0 +1,79 @@
+/* Upload Section Styles */
+.upload-box {
+    border: 3px dashed #999;
+    border-radius: 12px;
+    padding: 40px 20px;
+    background-color: white;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-box:hover {
+    border-color: #666;
+    background-color: #fafafa;
+}
+
+.upload-box.dragover {
+    border-color: #4CAF50;
+    background-color: #e8f5e9;
+}
+
+.upload-box.has-file {
+    border-color: #4CAF50;
+    background-color: #e8f5e9;
+}
+
+.upload-text {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.file-types {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.or-text {
+    margin: 15px 0;
+    color: #999;
+    font-size: 14px;
+}
+
+.btn-upload {
+    background-color: white;
+    border: 2px solid #666;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-upload:hover {
+    background-color: #666;
+    color: white;
+}
+
+.upload-status {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    display: none;
+}
+
+.upload-status.success {
+    display: block;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.upload-status.error {
+    display: block;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}

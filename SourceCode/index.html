@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peelback - Research Paper Simplification</title>
+    <link rel="stylesheet" href="assets/styles/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <h1>Peelback</h1>
+            <nav>
+                <a href="#about">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h2>Peel back the complexity, let your research speak</h2>
+    </section>
+
+    <!-- Main Split Layout -->
+    <main class="split-container">
+        <!-- Left Panel - Input -->
+        <aside class="left-panel">
+            <!-- Upload Area -->
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <p class="upload-text">Drag and drop to upload document</p>
+                    <p class="file-types">List of supported formats</p>
+                    <p class="or-text">Or</p>
+                    <button class="btn-upload" id="manualUploadBtn">Upload file manually</button>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf,.docx" hidden>
+                <div id="uploadStatus" class="upload-status"></div>
+            </div>
+
+            <!-- Audience Selector -->
+            <div class="control-section">
+                <label class="control-label">Audience selector:</label>
+                <div class="audience-dropdown">
+                    <select id="audienceSelect">
+                        <option value="">Select audience...</option>
+                        <option value="patient">Patient</option>
+                        <option value="policymaker">Policymaker</option>
+                        <option value="business">Business</option>
+                    </select>
+                    <div class="checkbox-icon" id="checkboxIcon">☑</div>
+                </div>
+            </div>
+
+            <!-- Complexity Slider -->
+            <div class="control-section">
+                <label class="control-label">Complexity slider:</label>
+                <div class="slider-container">
+                    <label class="slider-label">Simple</label>
+                    <input type="range" id="complexitySlider" min="1" max="5" value="3">
+                    <label class="slider-label">Detailed</label>
+                </div>
+            </div>
+
+            <!-- Process Button -->
+            <button class="btn-process" id="processBtn" disabled>Simplify This Paper</button>
+
+            <!-- Progress Bar -->
+            <div id="progressSection" class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText"></p>
+            </div>
+        </aside>
+
+        <!-- Right Panel - Output -->
+        <section class="right-panel">
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📄</div>
+                <h3>Upload a paper to get started</h3>
+                <p>Your simplified results will appear here</p>
+            </div>
+
+            <!-- Results (Hidden by default) -->
+            <div class="results-container" id="resultsContainer" style="display: none;">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="tab1">Tab 1</button>
+                    <button class="tab" data-tab="tab2">Tab 2</button>
+                    <button class="tab" data-tab="tab3">Tab 3...</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <h2>Results section</h2>
+                    <p>Format of results undecided yet therefore left blank. To be developed with sections later.</p>
+                    <p>Each tab would contain a section</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-action">
+                        <span class="action-icon">⬇</span>
+                    </button>
+                    <button class="btn-action">
+                        <span class="action-icon">📋</span>
+                    </button>
+                    <button class="btn-action">
+                        <span class="action-icon">↺</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
