@@ -29,13 +29,10 @@ exports.prompt = async (req, res) => {
         response_format: { type: "json_object" },
         store: false,
     });
-    response = completion.choices[0].message.content
+
     console.log(completion.choices[0].message.content);
-    res.json({response});
+    res.json({message: completion.choices[0].message.content});
 }
-
-
-
 
 exports.ping = (req, res) => {
     res.json({message: "Pong!"})
