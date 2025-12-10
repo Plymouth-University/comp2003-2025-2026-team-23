@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    env_file:
+      - ./backend/.env
   frontend:
     container_name: Peelback-Frontend
     build:
