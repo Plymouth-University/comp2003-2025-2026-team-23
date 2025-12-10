@@ -1,10 +1,9 @@
 import OpenAI from "openai";
 
 import dotenv from "dotenv";
+dotenv.config();
 
-async function prompt_ai() {
-    dotenv.config();
-
+exports.prompt = async (req, res) => {
     const client = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     });
@@ -14,27 +13,7 @@ async function prompt_ai() {
         messages: [
             {
                 role: "system",
-                content: `
-
-    You are an AI assistant that extracts key information from medical research PDF documents.
-    Your job:
-    1. Read the PDF provided by the user.
-    2. Summarise it into 3 sections: "summary", "key_points", and "recommendations".
-    3. Output the final answer ONLY in valid JSON, matching the schema below.
-
-    JSON Schema:
-    {
-    "summary": "string",
-    "key_points": ["string"],
-    "recommendations": ["string"]
-    }
-
-    Rules:
-    - Do NOT add extra fields.
-    - Do NOT return markdown.
-    - Do NOT use comments.
-    - Only return valid JSON.
-    `
+                content: "You are an AI assistant that extracts key information from medical research PDF documents. Your job: 1. Read the PDF provided by the user. 2. Summarise it into 3 sections: 'summary', 'key_points', and 'recommendations'. 3. Output the final answer ONLY in valid JSON, matching the schema below. JSON Schema: {'summary': 'string', 'key_points': ['string'],'recommendations': ['string']}. Rules: - Do NOT add extra fields. - Do NOT return markdown. - Do NOT use comments. - Only return valid JSON."
             },
             {
                 role: "user",
@@ -45,11 +24,15 @@ async function prompt_ai() {
                     },
                     {
                         type: "file",
-                        file_id: "file-abc123"   // <- Upload your PDF first
+                        file: { file_id: upload.id }
                     }
                 ]
             }
         ],
+        response_format: { type: "json_object" },
         store: false,
     });
-};
+
+    console.log(completion.choices[0].message.content);
+    res.json({message: completion.choices[0].message.content});
+}
