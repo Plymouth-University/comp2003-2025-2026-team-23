@@ -1,4 +1,7 @@
-const OpenAI = require("openai");
+import OpenAI from "openai";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 exports.prompt = async (req, res) => {
     const client = new OpenAI({
@@ -19,24 +22,17 @@ exports.prompt = async (req, res) => {
                         type: "text",
                         text: "Please summarise the attached PDF following the schema."
                     },
-                    ///{
-                    ///    type: "file",
-                    ///    file: { file_id: upload.id }
-                    ///}
+                    {
+                        type: "file",
+                        file: { file_id: upload.id }
+                    }
                 ]
             }
         ],
         response_format: { type: "json_object" },
         store: false,
     });
-    response = completion.choices[0].message.content
+
     console.log(completion.choices[0].message.content);
-    res.json({response});
-}
-
-
-
-
-exports.ping = (req, res) => {
-    res.json({message: "Pong!"})
+    res.json({message: completion.choices[0].message.content});
 }
