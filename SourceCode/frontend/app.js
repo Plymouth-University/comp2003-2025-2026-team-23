@@ -6,6 +6,7 @@
 // Import upload module
 import { UploadManager } from './features/upload.js';
 import { ControlsManager } from './features/controls.js';
+import { ProcessingManager } from './features/processing.js';
 
 class PeelbackApp {
     constructor() {
@@ -23,6 +24,11 @@ class PeelbackApp {
         this.controlsManager = new ControlsManager();
 
         console.log('✅ Controls module initialized successfully');
+
+        //Initialize processing module
+        this.controlsManager = new ProcessingManager();
+
+        console.log('✅ Processing module initialized successfully');
     }
 
     // Public API method for accessing upload manager
