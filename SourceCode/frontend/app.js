@@ -1,39 +1,53 @@
 /**
  * Main Application Controller
- * Initializes Upload Manager
+ * Initializes and coordinates all feature modules
  */
 
-// Import upload module
 import { UploadManager } from './features/upload.js';
+import { ControlsManager } from './features/controls.js';
+import { ProcessingManager } from './features/processing.js';
+import { ResultsManager } from './features/results.js';
 
 class PeelbackApp {
     constructor() {
-        console.log('🚀 Initializing Peelback...');
         this.init();
     }
 
     init() {
-        // Initialize upload module
+        // Initialize all modules
         this.uploadManager = new UploadManager();
+        this.controlsManager = new ControlsManager();
+        this.processingManager = new ProcessingManager();
+        this.resultsManager = new ResultsManager();
 
-        console.log('✅ Upload module initialized successfully');
+        console.log('✓ Peelback app initialized');
+        
+        // Setup global error handling
+        this.setupErrorHandling();
     }
 
-    // Public API method for accessing upload manager
+    setupErrorHandling() {
+        window.addEventListener('error', (event) => {
+            console.error('Application error:', event.error);
+            // TODO: Add user-friendly error display
+        });
+    }
+
+    // Public API for accessing managers
     getUploadedFile() {
-        return this.uploadManager?.getUploadedFile();
+        return this.uploadManager.getUploadedFile();
+    }
+
+    getSelectedAudience() {
+        return this.controlsManager.getSelectedAudience();
+    }
+
+    getComplexityLevel() {
+        return this.controlsManager.getComplexityLevel();
     }
 }
 
 // Initialize app when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.peelbackApp = new PeelbackApp();
-    });
-} else {
-    // DOM already loaded
+document.addEventListener('DOMContentLoaded', () => {
     window.peelbackApp = new PeelbackApp();
-}
-
-// Export for testing
-export default PeelbackApp;
+});
