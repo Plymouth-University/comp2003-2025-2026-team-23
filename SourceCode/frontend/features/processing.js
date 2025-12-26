@@ -55,6 +55,13 @@ export class ProcessingManager {
             { percent: 100, text: 'Complete!' }
         ];
 
+        // Attempt to get a request
+        await this.updateProgress(0, "Sending request...");
+        // await this.requestSimplification();
+
+        // Error handling
+        // if ()
+
         for (const stage of stages) {
             await this.updateProgress(stage.percent, stage.text);
             await this.delay(1500);
