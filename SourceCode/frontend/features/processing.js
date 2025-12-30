@@ -47,6 +47,8 @@ export class ProcessingManager {
         
         this.isProcessing = true;
         this.progressSection.classList.add('active');
+
+        let reqResponse = null;
         
         const stages = [
             { percent: 20, text: 'Extracting text...' },
@@ -57,7 +59,9 @@ export class ProcessingManager {
 
         // Attempt to get a request
         await this.updateProgress(0, "Sending request...");
-        // await this.requestSimplification();
+
+        reqResponse = await peelbackApp.requestManager.requestSimplification();
+        console.log(reqResponse); // Temp display in console
 
         // Error handling
         // if ()
