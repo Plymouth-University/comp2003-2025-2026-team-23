@@ -43,8 +43,17 @@ exports.prompt = async (req, res) => {
         store: false,
     });
     response = completion.choices[0].message.content
-    console.log(completion.choices[0].message.content);
-    console.log("Deleting file (not done yet)");
+
+    // Delete file from /uploads
+    console.log(response);
+    fs.unlink(`./uploads/${req.file["filename"]}`, (error) => {
+        if (error) {
+            console.log(`Couldn't delete file ${req.file["filename"]}.`);
+        } else {
+            console.log(`Deleted file ${req.file["filename"]}.`);
+        }
+    });
+
     res.json({response});
 }
 
