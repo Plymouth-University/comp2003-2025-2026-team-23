@@ -54,7 +54,15 @@ exports.prompt = async (req, res) => {
         }
     });
 
-    res.json({response});
+    if (!response) {
+        return res.status(500).json({
+            summary: "",
+            key_points: [],
+            recommendations: []
+        });
+    }
+
+    res.json(JSON.parse(response));
 }
 
 

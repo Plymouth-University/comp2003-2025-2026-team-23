@@ -47,8 +47,6 @@ export class ProcessingManager {
         
         this.isProcessing = true;
         this.progressSection.classList.add('active');
-
-        let reqResponse = null;
         
         const stages = [
             { percent: 20, text: 'Extracting text...' },
@@ -60,11 +58,16 @@ export class ProcessingManager {
         // Attempt to get a request
         await this.updateProgress(0, "Sending request...");
 
-        reqResponse = await peelbackApp.requestManager.requestSimplification();
-        console.log(reqResponse); // Temp display in console
+        let reqResponse = await peelbackApp.requestManager.requestSimplification();
+        console.log("Raw response:", reqResponse);
 
-        // Error handling
-        // if ()
+        if (typeof reqResponse === "string") {
+            try {
+                reqResponse = JSON.parse(reqResponse);
+            } catch {
+                reqResponse = { summary: "", key_points: [], recommendations: [] };
+            }
+        }
 
         for (const stage of stages) {
             await this.updateProgress(stage.percent, stage.text);
@@ -73,7 +76,7 @@ export class ProcessingManager {
 
         // Show results
         await this.delay(500);
-        this.showResults();
+        this.showResults(reqResponse);
         this.resetProgress();
         this.isProcessing = false;
     }
@@ -86,7 +89,7 @@ export class ProcessingManager {
         });
     }
 
-    showResults() {
+    showResults(reqResponse) {
         const emptyState = document.getElementById('emptyState');
         const resultsContainer = document.getElementById('resultsContainer');
         
@@ -94,7 +97,7 @@ export class ProcessingManager {
         if (resultsContainer) resultsContainer.style.display = 'flex';
         
         // Dispatch event
-        document.dispatchEvent(new CustomEvent('processingComplete'));
+        document.dispatchEvent(new CustomEvent('processingComplete', {detail: reqResponse}));
     }
 
     resetProgress() {
