@@ -1,8 +1,13 @@
 const express = require('express');
 const routes = require("./src/routes")
+const cors = require('cors');
+
 const app = express();
 const port = (process.env.port || 3000);
 
+app.use(cors({
+  origin: "http://localhost"
+}));
 
 app.use("/api", routes);
 

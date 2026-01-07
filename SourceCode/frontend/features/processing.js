@@ -55,6 +55,20 @@ export class ProcessingManager {
             { percent: 100, text: 'Complete!' }
         ];
 
+        // Attempt to get a request
+        await this.updateProgress(0, "Sending request...");
+
+        let reqResponse = await peelbackApp.requestManager.requestSimplification();
+        console.log("Raw response:", reqResponse);
+
+        if (typeof reqResponse === "string") {
+            try {
+                reqResponse = JSON.parse(reqResponse);
+            } catch {
+                reqResponse = { summary: "", key_points: [], recommendations: [] };
+            }
+        }
+
         for (const stage of stages) {
             await this.updateProgress(stage.percent, stage.text);
             await this.delay(1500);
@@ -62,7 +76,7 @@ export class ProcessingManager {
 
         // Show results
         await this.delay(500);
-        this.showResults();
+        this.showResults(reqResponse);
         this.resetProgress();
         this.isProcessing = false;
     }
@@ -75,7 +89,7 @@ export class ProcessingManager {
         });
     }
 
-    showResults() {
+    showResults(reqResponse) {
         const emptyState = document.getElementById('emptyState');
         const resultsContainer = document.getElementById('resultsContainer');
         
@@ -83,7 +97,7 @@ export class ProcessingManager {
         if (resultsContainer) resultsContainer.style.display = 'flex';
         
         // Dispatch event
-        document.dispatchEvent(new CustomEvent('processingComplete'));
+        document.dispatchEvent(new CustomEvent('processingComplete', {detail: reqResponse}));
     }
 
     resetProgress() {
