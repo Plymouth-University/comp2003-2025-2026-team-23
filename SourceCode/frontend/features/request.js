@@ -5,7 +5,7 @@
 
 export class RequestManager {
     constructor() {
-        this.backendServerURL = "http://127.0.0.1:3000/api"; // Currently hardcoded
+        this.backendServerURL = (process.env.backendURL + ":3000/api") || "http://127.0.0.1:3000/api";
         this.fileReader = new FileReader();
     }
 

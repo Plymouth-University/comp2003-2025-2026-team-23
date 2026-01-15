@@ -6,8 +6,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    env_file:
-      - ./backend/.env
+    environment:
+      frontendURL: "192.168.1.13"
+      OPENAI_API_KEY: ""
   frontend:
     container_name: Peelback-Frontend
     build:
@@ -17,3 +18,5 @@ services:
       - "80:80"
     depends_on:
     - backend
+    environment:
+      backendURL: "192.168.1.13"
