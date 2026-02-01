@@ -72,20 +72,23 @@ p {
     line-height: 1.6;
 }
 
-/* Hero Section */
-.hero {
-    background-color: var(--primary-brand);
-    padding: var(--spacing-xl) var(--spacing-lg);
-    text-align: center;
-    color: white;
-    box-shadow: var(--shadow-sm);
+/*Page Header */
+.page-header {
+    margin-bottom: var(--spacing-lg);
 }
 
-.hero h2 {
-    font-size: 20px;
-    font-weight: 500;
-    color: white;
-    letter-spacing: -0.01em;
+.page-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.page-subtitle {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
 
 /* Split Container */
