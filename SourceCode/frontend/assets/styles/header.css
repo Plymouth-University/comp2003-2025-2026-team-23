@@ -1,17 +1,16 @@
 /* Header Styles */
 header {
     background-color: var(--primary-brand);
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-md); 
     color: white;
     box-shadow: var(--shadow-sm);
 }
-
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
 }
 
 /* Logo */
