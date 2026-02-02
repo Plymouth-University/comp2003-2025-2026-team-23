@@ -1,79 +1,244 @@
 /* Upload Section Styles */
+
+/* Upload Section Container */
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+/* Upload Box - Default State (empty, ready for upload) */
 .upload-box {
-    border: 3px dashed #999;
-    border-radius: 12px;
-    padding: 40px 20px;
-    background-color: white;
+    border: 2px dashed #D1D5DB;
+    border-radius: var(--radius-lg);
+    padding: 48px var(--spacing-lg);
+    background-color: #FAFAFA;
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
 
 .upload-box:hover {
-    border-color: #666;
-    background-color: #fafafa;
+    border-color: var(--primary-brand);
+    background-color: #F5F3FF;
 }
 
+/* Dragover State */
 .upload-box.dragover {
-    border-color: #4CAF50;
-    background-color: #e8f5e9;
+    border-color: var(--primary-brand);
+    background-color: #EEF2FF;
+    transform: scale(1.01);
+    box-shadow: var(--shadow-md);
 }
 
+/* Has File State - When file is uploaded */
 .upload-box.has-file {
-    border-color: #4CAF50;
-    background-color: #e8f5e9;
+    border: 2px dashed #10B981;
+    background-color: #F0FDF4;
+    border-style: dashed;
+    padding: 40px var(--spacing-lg);
 }
 
+/* Upload Icon - Cloud icon before upload */
+.upload-text::before {
+    content: '☁️';
+    font-size: 56px;
+    display: block;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+/* Hide cloud icon when file is uploaded */
+.upload-box.has-file .upload-text::before {
+    display: none;
+}
+
+/* Upload Text */
 .upload-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+/* When file uploaded, make filename larger and bold */
+.upload-box.has-file .upload-text {
+    font-size: 56px;
+    font-weight: 400;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1;
+}
+
+/* File name text styling when uploaded */
+.upload-box.has-file .upload-text:first-child {
     font-size: 16px;
-    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--spacing-md);
 }
 
 .file-types {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 15px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
 }
 
 .or-text {
-    margin: 15px 0;
-    color: #999;
-    font-size: 14px;
+    margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+    color: var(--text-light);
+    font-size: 13px;
+    font-weight: 400;
 }
 
+/* Upload Button - Browse Files */
 .btn-upload {
-    background-color: white;
-    border: 2px solid #666;
-    padding: 10px 20px;
-    border-radius: 6px;
+    background-color: var(--primary-brand);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-upload:hover {
-    background-color: #666;
-    color: white;
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
+.btn-upload:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+/* When file is uploaded, button becomes secondary style */
+.upload-box.has-file .btn-upload {
+    background-color: white;
+    color: var(--text-primary);
+    border: 2px solid #D1D5DB;
+    margin-top: var(--spacing-md);
+}
+
+.upload-box.has-file .btn-upload:hover {
+    background-color: #F9FAFB;
+    border-color: var(--primary-brand);
+    color: var(--primary-brand);
+}
+
+/* Upload Status Messages */
 .upload-status {
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 6px;
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
     font-size: 14px;
+    font-weight: 500;
     display: none;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .upload-status.success {
     display: block;
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #6EE7B7;
 }
 
 .upload-status.error {
     display: block;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FCA5A5;
+}
+
+/* Specific styling for uploaded state structure */
+/* When JavaScript adds the file display HTML */
+.upload-box.has-file > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Checkmark styling when file uploaded */
+.upload-box.has-file > div:first-child {
+    font-size: 56px;
+    margin-bottom: var(--spacing-sm);
+    color: #10B981;
+}
+
+/* Filename styling */
+.upload-box.has-file p:first-of-type {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+/* File size styling */
+.upload-box.has-file p:nth-of-type(2) {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive Upload Section */
+@media (max-width: 768px) {
+    .upload-box {
+        padding: var(--spacing-xl) var(--spacing-md);
+        min-height: 180px;
+    }
+    
+    .upload-text::before {
+        font-size: 48px;
+    }
+    
+    .upload-box.has-file .upload-text {
+        font-size: 48px;
+    }
+    
+    .upload-text {
+        font-size: 14px;
+    }
+    
+    .btn-upload {
+        padding: 10px 20px;
+        font-size: 14px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .upload-box {
+        padding: var(--spacing-lg) var(--spacing-md);
+        min-height: 160px;
+    }
+    
+    .upload-text::before {
+        font-size: 40px;
+    }
+    
+    .upload-box.has-file .upload-text {
+        font-size: 40px;
+    }
 }

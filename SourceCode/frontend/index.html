@@ -12,27 +12,30 @@
         <div class="header-content">
             <h1>Peelback</h1>
             <nav>
-                <a href="#about">About</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
             </nav>
         </div>
     </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <h2>Peel back the complexity, let your research speak</h2>
-    </section>
 
     <!-- Main Split Layout -->
     <main class="split-container">
         <!-- Left Panel - Input -->
         <aside class="left-panel">
+
+            <!-- Upload Header Area -->
+            <div class="page-header">
+                <h2 class="page-title">Upload Document</h2>
+                <p class="page-subtitle">Transform complex research into clear, accessible content</p>
+            </div>
+
             <!-- Upload Area -->
             <div class="upload-section">
                 <div class="upload-box" id="uploadBox">
-                    <p class="upload-text">Drag and drop to upload document</p>
-                    <p class="file-types">List of supported formats</p>
-                    <p class="or-text">Or</p>
-                    <button class="btn-upload" id="manualUploadBtn">Upload file manually</button>
+                    <p class="upload-text">Drag and drop your file here</p>
+                    <p class="file-types">Supports PDF and DOCX files</p>
+                    <p class="or-text">or</p>
+                    <button class="btn-upload" id="manualUploadBtn">Browse Files</button>
                 </div>
                 <input type="file" id="fileInput" accept=".pdf,.docx" hidden>
                 <div id="uploadStatus" class="upload-status"></div>
@@ -40,13 +43,13 @@
 
             <!-- Audience Selector -->
             <div class="control-section">
-                <label class="control-label">Audience selector:</label>
+                <label class="control-label">Target Audience</label>
                 <div class="audience-dropdown">
                     <select id="audienceSelect">
                         <option value="">Select audience...</option>
-                        <option value="patient">Patient</option>
-                        <option value="policymaker">Policymaker</option>
-                        <option value="business">Business</option>
+                        <option value="patient">Patients</option>
+                        <option value="policymaker">Clinicians & NHS</option>
+                        <option value="business">Policy & Industry</option>
                     </select>
                     <div class="checkbox-icon" id="checkboxIcon">☑</div>
                 </div>
@@ -54,16 +57,14 @@
 
             <!-- Complexity Slider -->
             <div class="control-section">
-                <label class="control-label">Complexity slider:</label>
+                <label class="control-label">Complexity Level</label>
                 <div class="slider-container">
                     <label class="slider-label">Simple</label>
                     <input type="range" id="complexitySlider" min="1" max="5" value="3">
                     <label class="slider-label">Detailed</label>
+                    <div class="slider-value" id="sliderValue">50%</div> 
                 </div>
             </div>
-
-            <!-- Process Button -->
-            <button class="btn-process" id="processBtn" disabled>Simplify This Paper</button>
 
             <!-- Progress Bar -->
             <div id="progressSection" class="progress-section">
@@ -72,6 +73,9 @@
                 </div>
                 <p class="progress-text" id="progressText"></p>
             </div>
+
+            <!-- Process Button -->
+            <button class="btn-process" id="processBtn" disabled>Process Document</button>
         </aside>
 
         <!-- Right Panel - Output -->
@@ -93,22 +97,24 @@
                 </div>
 
                 <!-- Tab Content -->
-                <div class="tab-content">
-                    <h2>Results section</h2>
-                    <p>Format of results undecided yet therefore left blank. To be developed with sections later.</p>
-                    <p>Each tab would contain a section</p>
+                <div class="tab-content" id="tabContent">
+                    <button class="tab active" data-tab="summary">Summary</button>
+                    <button class="tab" data-tab="keypoints">Key Points</button>
+                    <button class="tab" data-tab="details">Details</button>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn-action">
+                    <button class="btn-action" id="exportBtn" data-action="download" title="Export">
                         <span class="action-icon">⬇</span>
+                        <span class="action-label">Export</span>
                     </button>
-                    <button class="btn-action">
+                    <button class="btn-action" id="copyAllBtn" data-action="copy-all" title="Copy All">
                         <span class="action-icon">📋</span>
+                        <span class="action-label">Copy All</span>
                     </button>
-                    <button class="btn-action">
-                        <span class="action-icon">↺</span>
+                    <button class="btn-action" id="copyTabBtn" data-action="copy-tab" title="Copy Current Tab">
+                        <span class="action-icon">📄</span>
+                        <span class="action-label">Copy Tab</span>
                     </button>
                 </div>
             </div>
