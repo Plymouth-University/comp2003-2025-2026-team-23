@@ -85,7 +85,7 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    padding: 28px var(--spacing-md) var(--spacing-md) var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-md) 28px var(--spacing-md);
     position: relative;
     background-color: #F5F5F5;
     border-radius: var(--radius-md);
@@ -97,6 +97,17 @@
     color: var(--text-secondary);
     white-space: nowrap;
     flex-shrink: 0; 
+}
+
+/* Percentage value positioned above slider, follows the thumb */
+.slider-value {
+    position: absolute;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-brand);
+    bottom: 8px;
+    pointer-events: none;
+    transition: left 0.15s ease-out;
 }
 
 /* Range Slider Styling */
