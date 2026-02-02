@@ -1,4 +1,6 @@
 /* Responsive Design */
+
+/* Tablet and below */
 @media (max-width: 1024px) {
     .split-container {
         flex-direction: column;
@@ -6,36 +8,252 @@
     
     .left-panel {
         width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        max-height: 60vh;
+    }
+    
+    .right-panel {
+        min-height: 40vh;
+    }
+    
+    .hero h2 {
+        font-size: 18px;
     }
 }
 
-/* Add more breakpoints as needed */
+/* Mobile landscape and below */
 @media (max-width: 768px) {
+    :root {
+        --spacing-xs: 6px;
+        --spacing-sm: 10px;
+        --spacing-md: 14px;
+        --spacing-lg: 20px;
+        --spacing-xl: 28px;
+    }
+    
+    body {
+        font-size: 14px;
+    }
+    
+    .hero {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+    
     .hero h2 {
         font-size: 16px;
+        line-height: 1.4;
     }
     
     .left-panel {
-        padding: 20px;
-        gap: 20px;
+        padding: var(--spacing-lg);
+        gap: var(--spacing-md);
+        max-height: 50vh;
     }
     
-    .tab {
-        padding: 12px 20px;
-        font-size: 13px;
+    .right-panel {
+        padding: var(--spacing-md);
+    }
+    
+    /* Adjust control sections for mobile */
+    .control-section {
+        gap: var(--spacing-xs);
+    }
+    
+    /* Make buttons full width on mobile */
+    .btn-upload,
+    .btn-process {
+        width: 100%;
+    }
+    
+    /* Adjust slider for mobile */
+    .slider-container {
+        gap: var(--spacing-sm);
     }
 }
 
+/* Small mobile devices */
 @media (max-width: 480px) {
+    :root {
+        --spacing-xs: 4px;
+        --spacing-sm: 8px;
+        --spacing-md: 12px;
+        --spacing-lg: 16px;
+        --spacing-xl: 24px;
+    }
+    
+    header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
     header h1 {
-        font-size: 20px;
+        font-size: 18px;
+    }
+    
+    header h1::before {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+    
+    header nav a {
+        font-size: 13px;
+        padding: var(--spacing-xs);
+    }
+    
+    .hero h2 {
+        font-size: 14px;
+    }
+    
+    .left-panel {
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
     }
     
     .upload-box {
-        padding: 30px 15px;
+        padding: var(--spacing-lg) var(--spacing-md);
+        min-height: 160px;
+    }
+    
+    .upload-box::before {
+        font-size: 36px;
+    }
+    
+    .upload-text {
+        font-size: 14px;
+    }
+    
+    .file-types {
+        font-size: 12px;
+    }
+    
+    .btn-upload {
+        padding: 10px 16px;
+        font-size: 13px;
     }
     
     .btn-process {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    .control-label {
+        font-size: 12px;
+    }
+    
+    .audience-dropdown select {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .slider-label {
+        font-size: 11px;
+    }
+    
+    .tabs {
+        padding: 0;
+        gap: 0;
+    }
+    
+    .tab {
+        padding: 10px 12px;
+        font-size: 12px;
+        flex: 1;
+        border-radius: 0;
+    }
+    
+    .tab-content {
+        padding: var(--spacing-md);
+    }
+    
+    .tab-content h2 {
+        font-size: 18px;
+    }
+    
+    .tab-content p,
+    .tab-content li {
+        font-size: 13px;
+    }
+    
+    .action-buttons {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+    
+    .btn-action {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .action-icon {
         font-size: 16px;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+    .hero {
+        padding: var(--spacing-md);
+    }
+    
+    .hero h2 {
+        font-size: 14px;
+    }
+    
+    .left-panel {
+        padding: var(--spacing-md);
+        gap: var(--spacing-sm);
+    }
+    
+    .upload-box {
+        padding: var(--spacing-md);
+        min-height: 140px;
+    }
+    
+    .empty-state {
+        padding: var(--spacing-lg);
+    }
+    
+    .tab-content {
+        padding: var(--spacing-md);
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .upload-box,
+    .btn-upload,
+    .btn-process,
+    .tab,
+    .btn-action {
+        box-shadow: var(--shadow-sm);
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* Container queries (modern browsers) */
+@container (max-width: 600px) {
+    .left-panel {
+        padding: var(--spacing-md);
+    }
+    
+    .upload-box {
+        min-height: 150px;
     }
 }
