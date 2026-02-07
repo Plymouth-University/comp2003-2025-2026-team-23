@@ -74,7 +74,7 @@ p {
 
 /*Page Header */
 .page-header {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
 }
 
 .page-title {
