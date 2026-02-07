@@ -18,27 +18,19 @@ export class ControlsManager {
     }
 
     initElements() {
-        this.audienceSelect = document.getElementById('audienceSelect');
-        this.checkboxIcon = document.getElementById('checkboxIcon');
+        this.audienceCards = document.querySelectorAll('.audience-card');
+        this.audienceHiddenInput = document.getElementById('audienceSelect');
         this.complexitySlider = document.getElementById('complexitySlider');
         this.sliderValue = document.getElementById('sliderValue');
     }
 
     attachEventListeners() {
         // Audience selection
-        this.audienceSelect?.addEventListener('change', (e) => {
-            this.selectedAudience = e.target.value;
-            
-            if (this.selectedAudience) {
-                this.checkboxIcon.classList.add('checked');
-            } else {
-                this.checkboxIcon.classList.remove('checked');
-            }
-            
-            // Dispatch event
-            document.dispatchEvent(new CustomEvent('audienceChanged', {
-                detail: { audience: this.selectedAudience }
-            }));
+        this.audienceCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const audience = card.dataset.audience;
+                this.selectAudience(audience, card);
+            });
         });
 
         // Complexity slider
@@ -59,6 +51,23 @@ export class ControlsManager {
 
     getSelectedAudience() {
         return this.selectedAudience;
+    }
+
+    selectAudience(audience, clickedCard) {
+        this.selectedAudience = audience;
+        
+        if (this.audienceHiddenInput) {
+            this.audienceHiddenInput.value = audience;
+        }
+        
+        this.audienceCards.forEach(card => {
+            card.classList.remove('selected');
+        });
+        clickedCard.classList.add('selected');
+        
+        document.dispatchEvent(new CustomEvent('audienceChanged', {
+            detail: { audience: this.selectedAudience }
+        }));
     }
 
     getComplexityLevel() {

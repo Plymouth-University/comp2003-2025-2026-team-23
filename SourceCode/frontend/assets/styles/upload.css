@@ -11,12 +11,12 @@
 .upload-box {
     border: 2px dashed #D1D5DB;
     border-radius: var(--radius-lg);
-    padding: 48px var(--spacing-lg);
+    padding: 32px var(--spacing-lg);
     background-color: #FAFAFA;
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
-    min-height: 200px;
+    min-height: 150px;
     display: flex;
     flex-direction: column;
     align-items: center;

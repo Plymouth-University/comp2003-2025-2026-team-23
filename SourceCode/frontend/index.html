@@ -44,15 +44,22 @@
             <!-- Audience Selector -->
             <div class="control-section">
                 <label class="control-label">Target Audience</label>
-                <div class="audience-dropdown">
-                    <select id="audienceSelect">
-                        <option value="">Select audience...</option>
-                        <option value="patient">Patients</option>
-                        <option value="policymaker">Clinicians & NHS</option>
-                        <option value="business">Policy & Industry</option>
-                    </select>
-                    <div class="checkbox-icon" id="checkboxIcon">☑</div>
+                <div class="audience-cards">
+                    <div class="audience-card" data-audience="patients">
+                        <div class="card-icon">👥</div>
+                        <div class="card-title">Patients</div>
+                    </div>
+                    <div class="audience-card" data-audience="clinicians">
+                        <div class="card-icon">🏥</div>
+                        <div class="card-title">Clinicians & NHS</div>
+                    </div>
+                    <div class="audience-card" data-audience="policy">
+                        <div class="card-icon">📊</div>
+                        <div class="card-title">Policy & Industry</div>
+                    </div>
                 </div>
+                <!-- Hidden input for backend compatibility -->
+                <input type="hidden" id="audienceSelect" value="">
             </div>
 
             <!-- Complexity Slider -->
