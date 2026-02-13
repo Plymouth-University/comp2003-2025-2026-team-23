@@ -13,7 +13,7 @@ export class ResultsManager {
     initElements() {
         this.tabs = document.querySelectorAll('.tab');
         this.resultsContainer = document.getElementById('resultsContainer');
-        this.tabContent = document.querySelector('.tab-content');
+        this.tabContent = document.getElementById('tabContent');
         this.emptyState = document.getElementById('emptyState'); // initialize
     }
 

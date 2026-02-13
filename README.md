@@ -6,3 +6,4 @@ Use this folder structure for your git repository. You may add additional folder
 (WIP)
 This GitHub repo contains our University of Plymouth COMP2003 coursework, undertaken in the 2025-26 academic year.
 Our client is Peelback.
+See the Documentation folder for detailed documentation on the design, deployment and operation of this application.
