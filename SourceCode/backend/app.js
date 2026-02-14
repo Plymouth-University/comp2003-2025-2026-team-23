@@ -6,7 +6,7 @@ const app = express();
 const port = (process.env.port || 3000);
 
 app.use(cors({
-  origin: "http://localhost"
+  origin: (process.env.frontendURL || "*")
 }));
 
 app.use("/api", routes);
