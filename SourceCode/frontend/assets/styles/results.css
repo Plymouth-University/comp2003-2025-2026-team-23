@@ -41,10 +41,17 @@
 /* Tabs Container */
 .tabs {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: var(--spacing-sm);
     padding: var(--spacing-lg);
-    background-color: #FAFAFA;  
+    background-color: #FAFAFA;
     border-bottom: none;
+}
+
+.tabs-left {
+    display: flex;
+    gap: var(--spacing-sm);
 }
 
 /* Individual Tab */
@@ -86,15 +93,16 @@
 /* Tab Content Area */
 .tab-content {
     flex: 1;
-    margin: 8px var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
+    margin: 8px var(--spacing-lg) 0 var(--spacing-lg); 
     padding: var(--spacing-xl);
     background-color: white;
     color: var(--text-primary);
     overflow-y: auto;
     animation: fadeIn 0.3s ease;
     border: 1px solid var(--border-light);  
-    border-radius: var(--radius-md);  
-    box-shadow: var(--shadow-sm); 
+    border-radius: var(--radius-md) var(--radius-md) 0 0; 
+    box-shadow: var(--shadow-sm);
+    border-bottom: none; 
 }
 
 .tab-content h2 {
@@ -152,6 +160,182 @@
     border-radius: var(--radius-md);
     overflow-x: auto;
     margin-bottom: var(--spacing-md);
+}
+
+.editing-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Tab Content - Editable State */
+.tab-content[contenteditable="true"] {
+    outline: 2px dashed var(--primary-brand);
+    outline-offset: -2px;
+}
+
+.tab-content[contenteditable="true"]:focus {
+    outline: 2px solid var(--primary-brand);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #D1D5DB;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: var(--primary-brand);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(24px);
+}
+
+.toggle-switch:hover .toggle-slider {
+    background-color: #9CA3AF;
+}
+
+.toggle-switch input:checked:hover + .toggle-slider {
+    background-color: var(--primary-hover);
+}
+
+.editing-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: white; 
+    border: 1px solid var(--border-light); 
+    border-top: 2px solid #E5E7EB; 
+    border-radius: 0 0 var(--radius-md) var(--radius-md); 
+    margin: 0 var(--spacing-lg) var(--spacing-lg) var(--spacing-lg); 
+    box-shadow: var(--shadow-sm); 
+}
+
+.editing-controls-left {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.editing-controls-right {
+    display: flex;
+}
+
+/* Undo/Redo Buttons */
+.btn-edit-control {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 20px;
+}
+
+.undo-btn {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.undo-btn:hover {
+    background-color: #A7F3D0;
+    transform: translateY(-1px);
+}
+
+.undo-btn:active {
+    transform: translateY(0);
+}
+
+.redo-btn {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+.redo-btn:hover {
+    background-color: #FDE68A;
+    transform: translateY(-1px);
+}
+
+.redo-btn:active {
+    transform: translateY(0);
+}
+
+.btn-edit-control:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-edit-control:disabled:hover {
+    transform: none;
+}
+
+/* Save Changes Button */
+.btn-save-changes {
+    background-color: var(--primary-brand);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-save-changes:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-save-changes:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Action Buttons Container */
