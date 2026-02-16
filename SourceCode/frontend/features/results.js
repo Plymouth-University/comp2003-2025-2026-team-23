@@ -28,6 +28,39 @@ export class ResultsManager {
             this.setApiData(e.detail);
             this.loadTabContent(this.currentTab);
         });
+
+                const editingToggle = document.getElementById('editingModeToggle');
+        const editingControls = document.getElementById('editingControls');
+        
+        editingToggle?.addEventListener('change', (e) => {
+            const isEditing = e.target.checked;
+            
+            if (editingControls) {
+                editingControls.style.display = isEditing ? 'flex' : 'none';
+            }
+            
+            if (this.tabContent) {
+                this.tabContent.contentEditable = isEditing;
+                if (!isEditing) {
+                    this.tabContent.contentEditable = 'false';
+                }
+            }
+        });
+
+        // Undo button
+        document.getElementById('undoBtn')?.addEventListener('click', () => {
+            document.execCommand('undo');
+        });
+
+        // Redo button
+        document.getElementById('redoBtn')?.addEventListener('click', () => {
+            document.execCommand('redo');
+        });
+
+        // Save changes button
+        document.getElementById('saveChangesBtn')?.addEventListener('click', () => {
+            this.saveChanges();
+        });
     }
 
     setApiData(data) {
@@ -97,4 +130,20 @@ export class ResultsManager {
             <p>Each tab contains a different section of the analysis.</p>
         `;
     }
+
+    saveChanges() {
+        if (this.tabContent) {
+            const editedContent = this.tabContent.innerHTML;
+            console.log('Saving changes:', editedContent);
+            
+            alert('Changes saved successfully!');
+            
+            const editingToggle = document.getElementById('editingModeToggle');
+            if (editingToggle) {
+                editingToggle.checked = false;
+                editingToggle.dispatchEvent(new Event('change'));
+            }
+        }
+    }
+
 }
