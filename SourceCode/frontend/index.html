@@ -94,21 +94,30 @@
                 <p>Your simplified results will appear here</p>
             </div>
 
-            <!-- Results (Hidden by default) -->
+           <!-- Results (Hidden by default) -->
             <div class="results-container" id="resultsContainer" style="display: none;">
                 <!-- Tabs -->
                 <div class="tabs">
-                    <div class="tabs-left">
-                        <button class="tab active" data-tab="tab1">Summary</button>
-                        <button class="tab" data-tab="tab2">Key Points</button>
-                        <button class="tab" data-tab="tab3">Recommendations</button>
+                    <div class="tabs-left-group">
+                        <div class="tabs-left">
+                            <button class="tab active" data-tab="tab1">Summary</button>
+                            <button class="tab" data-tab="tab2">Key Points</button>
+                            <button class="tab" data-tab="tab3">Recommendations</button>
+                        </div>
+                        <div class="editing-toggle">
+                            <label class="toggle-label">Editing Mode</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="editingModeToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="editing-toggle">
-                        <label class="toggle-label">Editing Mode</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="editingModeToggle">
-                            <span class="toggle-slider"></span>
-                        </label>
+                    
+                    <div class="tabs-right">
+                        <button class="btn-history" id="historyBtn" title="View History">
+                            <span class="history-icon">🕐</span>
+                            <span class="history-label">History</span>
+                        </button>
                     </div>
                 </div>
 
