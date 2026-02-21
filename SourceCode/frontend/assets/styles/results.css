@@ -41,13 +41,14 @@
 /* Tabs Container */
 .tabs {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; 
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-lg); 
     padding: var(--spacing-lg);
     background-color: #FAFAFA;
     border-bottom: none;
 }
+
 
 .tabs-left {
     display: flex;
