@@ -41,17 +41,60 @@
 /* Tabs Container */
 .tabs {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Push left and right apart */
     align-items: center;
-    gap: var(--spacing-sm);
     padding: var(--spacing-lg);
     background-color: #FAFAFA;
     border-bottom: none;
 }
 
-.tabs-left {
+.tabs-left-group {
     display: flex;
-    gap: var(--spacing-sm);
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.tabs-right {
+    display: flex;
+    align-items: center;
+}
+
+/* History Button */
+.btn-history {
+    background-color: white;
+    border: 2px solid var(--border-light);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-history:hover {
+    border-color: var(--primary-brand);
+    color: var(--primary-brand);
+    background-color: rgba(99, 102, 241, 0.05);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-history:active {
+    transform: translateY(0);
+}
+
+.history-icon {
+    font-size: 16px;
+}
+
+.history-label {
+    font-size: 14px;
+    font-weight: 500;
 }
 
 /* Individual Tab */

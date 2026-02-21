@@ -8,6 +8,7 @@ import { ControlsManager } from './features/controls.js';
 import { ProcessingManager } from './features/processing.js';
 import { ResultsManager } from './features/results.js';
 import { RequestManager } from './features/request.js';
+import { HistoryManager } from './features/history.js';
 
 class PeelbackApp {
     constructor() {
@@ -21,6 +22,7 @@ class PeelbackApp {
         this.processingManager = new ProcessingManager();
         this.resultsManager = new ResultsManager();
         this.requestManager = new RequestManager();
+        this.historyManager = new HistoryManager();
 
         console.log('✓ Peelback app initialized');
 
