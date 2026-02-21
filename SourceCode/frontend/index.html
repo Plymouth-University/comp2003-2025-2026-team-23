@@ -161,6 +161,60 @@
         </section>
     </main>
 
+    <!-- History Panel (slides in from right) -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <h3>History</h3>
+            <button class="btn-close-history" id="closeHistoryBtn">✕</button>
+        </div>
+        
+        <div class="history-content">
+            <!-- Mock history items -->
+            <div class="history-item" data-history-id="1">
+                <div class="history-item-icon">📄</div>
+                <div class="history-item-details">
+                    <h4 class="history-item-title">Cancer Treatment Study</h4>
+                    <p class="history-item-meta">
+                        <span class="history-date">Jan 15, 2026</span>
+                        <span class="history-separator">•</span>
+                        <span class="history-audience">Patients</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="history-item" data-history-id="2">
+                <div class="history-item-icon">📄</div>
+                <div class="history-item-details">
+                    <h4 class="history-item-title">Diabetes Research Paper</h4>
+                    <p class="history-item-meta">
+                        <span class="history-date">Jan 14, 2026</span>
+                        <span class="history-separator">•</span>
+                        <span class="history-audience">Clinicians & NHS</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="history-item" data-history-id="3">
+                <div class="history-item-icon">📄</div>
+                <div class="history-item-details">
+                    <h4 class="history-item-title">Policy Impact Analysis</h4>
+                    <p class="history-item-meta">
+                        <span class="history-date">Jan 12, 2026</span>
+                        <span class="history-separator">•</span>
+                        <span class="history-audience">Policy & Industry</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Empty state (show when no history) -->
+            <div class="history-empty" style="display: none;">
+                <div class="history-empty-icon">🕐</div>
+                <p>No history yet</p>
+                <small>Your processed documents will appear here</small>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="./app.js"></script>
 </body>
 </html>
