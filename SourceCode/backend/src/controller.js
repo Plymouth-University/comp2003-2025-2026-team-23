@@ -1,8 +1,16 @@
 const OpenAI = require("openai");
 const fs = require("fs");
 const formData = require("form-data")
+const lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
 
 exports.prompt = async (req, res) => {
+
+    if (process.env.testingMode == "True") {
+        console.log("Testing mode is enabled");
+        return res.json({'summary': `${lorem}`, 'key_points': [`${lorem}`,`${lorem}`,`${lorem}`],'recommendations': [`${lorem}`,`${lorem}`,`${lorem}`]});
+    }
+
     const client = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     });
@@ -62,12 +70,12 @@ exports.prompt = async (req, res) => {
         });
     }
 
-    res.json(JSON.parse(response));
+    return res.json(JSON.parse(response));
 }
 
 
 
 
 exports.ping = (req, res) => {
-    res.json({message: "Pong!"})
+    return res.json({message: "Pong!"})
 }
