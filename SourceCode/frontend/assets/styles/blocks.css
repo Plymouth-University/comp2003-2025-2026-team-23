@@ -1,0 +1,150 @@
+/* ============================================
+   CONTENT BLOCKS SYSTEM - BASE STYLES
+   ============================================ */
+
+/* Blocks Container */
+.blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+/* Base Block Styles */
+.block {
+    background: white;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.block:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-brand);
+}
+
+/* Block Header with Controls */
+.block-header {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Title Block - No header, special styling */
+.title-block {
+    border: none;
+    padding: 0;
+    background: transparent;
+}
+
+.title-block:hover {
+    box-shadow: none;
+    border: none;
+}
+
+.title-block .block-content {
+    padding: 0;
+}
+
+.block-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Drag Handle */
+.drag-handle {
+    cursor: grab;
+    font-size: 18px;
+    color: var(--text-light);
+    padding: 4px;
+    user-select: none;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Block Action Buttons */
+.btn-edit-block,
+.btn-remove-block {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.btn-edit-block {
+    margin-left: auto;
+}
+
+.btn-remove-block {
+    margin-left: 0;
+}
+
+.btn-edit-block:hover {
+    background-color: #EEF2FF;
+    color: var(--primary-brand);
+}
+
+.btn-remove-block:hover {
+    background-color: #FEE2E2;
+    color: #DC2626;
+}
+
+/* Block Content Area */
+.block-content {
+    padding: var(--spacing-sm);
+}
+
+.block-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.block-content p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.block-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.block-content li {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    padding-left: 24px;
+    position: relative;
+}
+
+.block-content li::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    color: var(--primary-brand);
+    font-weight: bold;
+}
+
+/* Editable State */
+.block-content[contenteditable="true"] {
+    outline: 2px dashed var(--primary-brand);
+    background-color: #FEFCE8;
+    border-radius: var(--radius-sm);
+}

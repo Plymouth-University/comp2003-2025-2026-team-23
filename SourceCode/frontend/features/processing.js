@@ -96,8 +96,12 @@ export class ProcessingManager {
         if (emptyState) emptyState.style.display = 'none';
         if (resultsContainer) resultsContainer.style.display = 'flex';
         
-        // Dispatch event
-        document.dispatchEvent(new CustomEvent('processingComplete', {detail: reqResponse}));
+        // Load mock blocks into Summary tab
+        if (window.peelbackApp && window.peelbackApp.blocksManager) {
+            window.peelbackApp.blocksManager.loadMockBlocks();
+        }
+        
+        console.log('✓ Results displayed with mock blocks');
     }
 
     resetProgress() {
