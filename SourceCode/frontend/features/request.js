@@ -3,9 +3,11 @@
  * Handles requests to the backend server
  */
 
+import { settings } from "../settings";
+
 export class RequestManager {
     constructor() {
-        this.backendServerURL = "http://127.0.0.1:3000/api"; // Currently hardcoded
+        this.backendServerURL = settings.backendURL;
         this.fileReader = new FileReader();
     }
 
