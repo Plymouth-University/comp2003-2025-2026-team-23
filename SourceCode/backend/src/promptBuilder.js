@@ -43,12 +43,33 @@ Ensure coverage of:
 
 Output requirements:
 Return ONLY valid JSON matching this schema:
-{'summary': 'string', 'key_points': ['string'], 'recommendations': ['string']}
+
+{
+  "blocks": [
+    { "type": "title",            "data": { "title": "string" } },
+    { "type": "author",           "data": { "authors": [{ "initials": "string", "name": "string", "department": "string", "institution": "string" }] } },
+    { "type": "publication_info", "data": { "published": "string", "doi": "string" } },
+    { "type": "sample_info",      "data": { "items": [{ "label": "string", "value": "string" }] } },
+    { "type": "summary",          "data": { "heading": "Summary", "body": "string" } },
+    { "type": "text_section",     "data": { "heading": "string", "body": "string" } },
+    { "type": "stats",            "data": { "items": [{ "label": "string", "value": "string" }] } },
+    { "type": "key_findings",     "data": { "heading": "Key Findings", "items": ["string"] } },
+    { "type": "implications",     "data": { "heading": "string", "body": "string" } },
+    { "type": "recommendations",  "data": { "heading": "Recommendations", "items": ["string"] } }
+  ]
+}
 
 Field expectations:
-- summary → a structured, well-written overview (length depends on complexity)
-- key_points → multiple detailed bullet points (more points at higher complexity)
-- recommendations → actionable or meaningful takeaways (not generic)
+- title → the paper's full title
+- author → ALL authors as an array; derive initials from name (e.g. "F. Manning" → "FM")
+- publication_info → journal, year, volume, DOI if present; use "N/A" if missing
+- sample_info → 3-5 items covering things like sample size, age range, gender split, study type, setting etc.
+- summary → structured overview, length scales with complexity level
+- text_section → use for a notable secondary section e.g. "Concerns", "Limitations", "Background"; omit if not relevant
+- stats → only include if the paper contains concrete numerical results, omit entirely if not, do ideally 4-6
+- key_findings → at least 4-6 specific points
+- implications → plain-language explanation of what the findings mean for the reader
+- recommendations → 4-6 actionable takeaways, not generic
 
 Rules:
 - Do NOT add extra fields.

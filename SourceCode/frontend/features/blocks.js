@@ -3,6 +3,77 @@
  */
 
 export class BlocksManager {
+
+    BLOCK_SCHEMA = {
+        title:            { cssClass: 'title-block',            editable: false, removable: false },
+        author:           { cssClass: 'author-block',           editable: false, removable: false },
+        publication_info: { cssClass: 'publication-block',      editable: false, removable: true  },
+        sample_info:      { cssClass: 'sample-info-block',      editable: false, removable: true  },
+        summary:          { cssClass: 'summary-block',          editable: true,  removable: true  },
+        text_section:     { cssClass: 'text-block',             editable: true,  removable: true  },
+        stats:            { cssClass: 'stats-block',            editable: true,  removable: true  },
+        key_findings:     { cssClass: 'findings-block',         editable: true,  removable: true  },
+        implications:     { cssClass: 'implications-block',     editable: true,  removable: true  },
+        recommendations:  { cssClass: 'recommendations-block',  editable: true,  removable: true  },
+    };
+
+    RENDERERS = {
+        title: ({ title }) =>
+            `<h1 class="block-title">${title}</h1>`,
+
+        author: ({ authors }) => authors.map(({ initials, name, department, institution }) => `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <div style="width:60px;height:60px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;font-weight:600;color:#6366F1;font-size:18px;flex-shrink:0;">
+                    ${initials}
+                </div>
+                <div class="author-info">
+                    <h4>${name}</h4>
+                    <p>${department}</p>
+                    <p>${institution}</p>
+                </div>
+            </div>`).join(''),
+
+        publication_info: ({ published, doi }) => `
+            <div class="pub-item"><span class="pub-label">Published:</span><span class="pub-value">${published}</span></div>
+            <div class="pub-item"><span class="pub-label">DOI:</span><span class="pub-value">${doi ?? 'N/A'}</span></div>`,
+
+        sample_info: ({ items }) => `
+            <div class="sample-grid">
+                ${items.map(({ label, value }) => `
+                    <div class="sample-item">
+                        <span class="sample-label">${label}</span>
+                        <span class="sample-value">${value}</span>
+                    </div>`).join('')}
+            </div>`,
+
+        summary: ({ heading, body }) =>
+            `<h3>${heading}</h3><p>${body}</p>`,
+
+        text_section: ({ heading, body }) =>
+            `<h3>${heading}</h3><p>${body}</p>`,
+
+        stats: ({ items }) => `
+            <h3>Key Statistics</h3>
+            <div class="stats-grid">
+                ${items.map(({ label, value }) => `
+                    <div class="stat-item">
+                        <span class="stat-label">${label}</span>
+                        <span class="stat-value">${value}</span>
+                    </div>`).join('')}
+            </div>`,
+
+        key_findings: ({ heading, items }) => `
+            <h3>${heading ?? 'Key Findings'}</h3>
+            <ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`,
+
+        implications: ({ heading, body }) =>
+            `<h3>${heading ?? 'What This Means for You'}</h3><p>${body}</p>`,
+
+        recommendations: ({ heading, items }) => `
+            <h3>${heading ?? 'Recommendations'}</h3>
+            <ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`,
+    };
+
     constructor() {
         this.state = {
             originalBlocks: [],
@@ -84,12 +155,7 @@ export class BlocksManager {
     // ═══════════════════════════════════════════
     loadMockBlocks() {
         if (this.tabContent) {
-            this.tabContent.innerHTML = this.getMockBlocksHTML();
-            this.blocksContainer = document.getElementById('blocksContainer');
-            this.reflowLayout();
-            if (window.peelbackApp && window.peelbackApp.resultsManager) {
-                window.peelbackApp.resultsManager.cacheBlocksHTML();
-            }
+            this.renderBlocks(this.getMockData());
             console.log('✓ Mock blocks loaded');
         }
     }
@@ -388,141 +454,80 @@ export class BlocksManager {
     // ═══════════════════════════════════════════
     //  MOCK BLOCKS HTML
     // ═══════════════════════════════════════════
-    getMockBlocksHTML() {
-        return `
-            <div class="blocks-container" id="blocksContainer">
-                <div class="block title-block" data-block-id="1" data-block-type="title" data-editable="false" data-removable="false">
-                    <div class="block-content">
-                        <h1 class="block-title">Understanding patient views and acceptability of predictive software in osteoporosis identification</h1>
-                    </div>
-                </div>
-
-                <div class="block author-block" data-block-id="2" data-block-type="author" data-editable="false" data-removable="false">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                    </div>
-                    <div class="block-content">
-                        <div style="width:60px;height:60px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;font-weight:600;color:#6366F1;font-size:18px;flex-shrink:0;border:2px solid #E5E7EB;">FM</div>
-                        <div class="author-info">
-                            <h4>F. Manning</h4>
-                            <p>Department of Health and Care Professions</p>
-                            <p>University of Exeter Medical School, Exeter, UK</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="block publication-block" data-block-id="3" data-block-type="publication_info" data-editable="false" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content">
-                        <div class="pub-item"><span class="pub-label">Published:</span><span class="pub-value">2023 (Radiography, Vol. 29)</span></div>
-                        <div class="pub-item"><span class="pub-label">DOI:</span><span class="pub-value">10.1016/j.radi.2023.01.015</span></div>
-                    </div>
-                </div>
-
-                <div class="block sample-info-block" data-block-id="4" data-block-type="sample_info" data-editable="false" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content">
-                        <div class="sample-grid">
-                            <div class="sample-item"><span class="sample-label">Sample Size</span><span class="sample-value">14 participants</span></div>
-                            <div class="sample-item"><span class="sample-label">Age Range</span><span class="sample-value">55-80 years</span></div>
-                            <div class="sample-item"><span class="sample-label">Gender Split</span><span class="sample-value">79% Female, 21% Male</span></div>
-                            <div class="sample-item"><span class="sample-label">Study Type</span><span class="sample-value">Qualitative (focus groups)</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="block summary-block" data-block-id="5" data-block-type="summary" data-editable="true" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content" contenteditable="false">
-                        <h3>Summary</h3>
-                        <p>This study explored how patients feel about using predictive software to identify osteoporosis risk from routine X-rays. Researchers spoke with 14 people aged 55-80 who were already attending screening appointments. While participants saw benefits in catching bone problems early, they were concerned about getting unexpected results without proper explanation from a healthcare professional.</p>
-                    </div>
-                </div>
-
-                <div class="block text-block" data-block-id="6" data-block-type="text_section" data-editable="true" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content" contenteditable="false">
-                        <h3>Concerns</h3>
-                        <p>Some participants worried about receiving an unexpected diagnosis through a screening tool they did not fully understand. There was concern that results delivered without explanation could cause anxiety or confusion, especially if the finding was serious or unexpected.</p>
-                    </div>
-                </div>
-
-                <div class="block stats-block" data-block-id="7" data-block-type="stats" data-editable="true" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content" contenteditable="false">
-                        <h3>Key Statistics</h3>
-                        <div class="stats-grid">
-                            <div class="stat-item"><span class="stat-label">Response Rate</span><span class="stat-value">87%</span></div>
-                            <div class="stat-item"><span class="stat-label">Mean Age</span><span class="stat-value">67.5 years</span></div>
-                            <div class="stat-item"><span class="stat-label">Follow-up Duration</span><span class="stat-value">18 months</span></div>
-                            <div class="stat-item"><span class="stat-label">Primary Outcome</span><span class="stat-value">Fracture incidence</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="block findings-block" data-block-id="8" data-block-type="key_findings" data-editable="true" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content" contenteditable="false">
-                        <h3>Key Findings</h3>
-                        <ul>
-                            <li>Participants expressed concerns about receiving unexpected diagnoses without clinical context</li>
-                            <li>Strong preference for healthcare professional to deliver and explain results</li>
-                            <li>Benefits seen in early identification of osteoporosis risk through routine imaging</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="block implications-block" data-block-id="9" data-block-type="implications" data-editable="true" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content" contenteditable="false">
-                        <h3>What This Means for You</h3>
-                        <p>If you're having routine X-rays, this technology could help spot bone weakness early, giving you time to make changes or start treatment before a fracture happens. However, it's important that results are explained clearly by a healthcare professional who can answer your questions and discuss next steps with you.</p>
-                    </div>
-                </div>
-
-                <div class="block recommendations-block" data-block-id="10" data-block-type="recommendations" data-editable="true" data-removable="true">
-                    <div class="block-header">
-                        <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
-                        <button class="btn-remove-block" title="Remove">✕</button>
-                    </div>
-                    <div class="block-content" contenteditable="false">
-                        <h3>Recommendations</h3>
-                        <ul>
-                            <li>Discuss predictive screening options with your healthcare provider during your next appointment</li>
-                            <li>Ask questions about how results would be delivered and explained</li>
-                            <li>Consider lifestyle changes (calcium, vitamin D, exercise) if you're at risk for osteoporosis</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        `;
+    getMockData() {
+        return [
+            {
+                type: 'title',
+                data: { title: 'Understanding patient views and acceptability of predictive software in osteoporosis identification' }
+            },
+            {
+                type: 'author',
+                data: {
+                    authors: [
+                        { initials: 'FM', name: 'F. Manning', department: 'Department of Health and Care Professions', institution: 'University of Exeter Medical School, Exeter, UK' }
+                    ]
+                }
+            },
+            {
+                type: 'publication_info',
+                data: { published: '2023 (Radiography, Vol. 29)', doi: '10.1016/j.radi.2023.01.015' }
+            },
+            {
+                type: 'sample_info',
+                data: {
+                    items: [
+                        { label: 'Sample Size',   value: '14 participants' },
+                        { label: 'Age Range',     value: '55-80 years'     },
+                        { label: 'Gender Split',  value: '79% Female, 21% Male' },
+                        { label: 'Study Type',    value: 'Qualitative (focus groups)' }
+                    ]
+                }
+            },
+            {
+                type: 'summary',
+                data: { heading: 'Summary', body: 'This study explored how patients feel about using predictive software to identify osteoporosis risk from routine X-rays. Researchers spoke with 14 people aged 55-80 who were already attending screening appointments.' }
+            },
+            {
+                type: 'text_section',
+                data: { heading: 'Concerns', body: 'Some participants worried about receiving an unexpected diagnosis through a screening tool they did not fully understand.' }
+            },
+            {
+                type: 'stats',
+                data: {
+                    items: [
+                        { label: 'Mean Age',           value: '69.5 years'        },
+                        { label: 'Follow-up Duration', value: '18 months'         },
+                        { label: 'Primary Outcome',    value: 'Fracture incidence' }
+                    ]
+                }
+            },
+            {
+                type: 'key_findings',
+                data: {
+                    heading: 'Key Findings',
+                    items: [
+                        'Participants expressed concerns about receiving unexpected diagnoses without clinical context',
+                        'Strong preference for healthcare professional to deliver and explain results',
+                        'Benefits seen in early identification of osteoporosis risk through routine imaging'
+                    ]
+                }
+            },
+            {
+                type: 'implications',
+                data: { heading: 'What This Means for You', body: 'If you\'re having routine X-rays, this technology could help spot bone weakness early, giving you time to make changes or start treatment before a fracture happens.' }
+            },
+            {
+                type: 'recommendations',
+                data: {
+                    heading: 'Recommendations',
+                    items: [
+                        'Discuss predictive screening options with your healthcare provider during your next appointment',
+                        'Ask questions about how results would be delivered and explained',
+                        'Consider lifestyle changes (calcium, vitamin D, exercise) if you\'re at risk for osteoporosis'
+                    ]
+                }
+            }
+        ];
     }
 
     // ═══════════════════════════════════════════
@@ -552,5 +557,56 @@ export class BlocksManager {
             this.fixOrphans();
             this.updateCache();
         }, 250);
+    }
+
+
+    // ═══════════════════════════════════════════
+    //  New Rendering System
+    // ═══════════════════════════════════════════
+
+    renderBlocks(blocksData) {
+    if (!this.tabContent) return;
+
+    const blocksHTML = blocksData
+        .filter(({ type, data }) => this.BLOCK_SCHEMA[type] && data && typeof data === 'object')
+        .map(({ type, data }, index) => this.buildBlockHTML(type, data, index + 1))
+        .join('');
+
+    this.tabContent.innerHTML = `
+        <div class="blocks-container" id="blocksContainer">
+            ${blocksHTML}
+        </div>`;
+
+    this.blocksContainer = document.getElementById('blocksContainer');
+    this.reflowLayout();
+    this.updateCache();
+    console.log(`✓ Rendered ${blocksData.length} blocks`);
+    }
+
+    buildBlockHTML(type, data, id) {
+    const schema = this.BLOCK_SCHEMA[type];
+    const renderer = this.RENDERERS[type];
+
+    let content = '';
+    try {
+        content = renderer ? renderer(data) : `<p>${JSON.stringify(data)}</p>`;
+    } catch (err) {
+        console.warn(`Renderer failed for block type "${type}":`, err);
+        content = '<p>Content unavailable</p>';
+    }
+
+    const { editable, removable, cssClass } = schema;
+
+    return `
+        <div class="block ${cssClass}"data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}">
+            <div class="block-header">
+                ${type !== 'title' ? '<span class="drag-handle">⋮⋮</span>' : ''}
+                ${editable  ? '<button class="btn-edit-block"  title="Edit">✏️</button>'   : ''}
+                ${removable ? '<button class="btn-remove-block" title="Remove">✕</button>' : ''}
+            </div>
+            <div class="block-content" contenteditable="false">
+                ${content}
+            </div>
+        </div>`;
     }
 }
