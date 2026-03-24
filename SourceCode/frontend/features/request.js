@@ -3,7 +3,7 @@
  * Handles requests to the backend server
  */
 
-import { settings } from "../settings";
+import { settings } from "../settings.js";
 
 export class RequestManager {
     constructor() {
@@ -57,9 +57,16 @@ export class RequestManager {
                 body: formData
             });
 
-            console.log(response);
+            const text = await response.text();
+            console.log("Raw response:", text);
+            const parsed = JSON.parse(text);
 
-            return response.text();
+            if (!parsed.blocks || !Array.isArray(parsed.blocks)) {
+                console.error("Unexpected response shape:", parsed);
+                return false;
+            }
+
+            return parsed
         } catch {
             return false;
         }

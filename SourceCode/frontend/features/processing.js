@@ -61,14 +61,6 @@ export class ProcessingManager {
         let reqResponse = await peelbackApp.requestManager.requestSimplification();
         console.log("Raw response:", reqResponse);
 
-        if (typeof reqResponse === "string") {
-            try {
-                reqResponse = JSON.parse(reqResponse);
-            } catch {
-                reqResponse = { summary: "", key_points: [], recommendations: [] };
-            }
-        }
-
         for (const stage of stages) {
             await this.updateProgress(stage.percent, stage.text);
             await this.delay(1500);
@@ -96,8 +88,16 @@ export class ProcessingManager {
         if (emptyState) emptyState.style.display = 'none';
         if (resultsContainer) resultsContainer.style.display = 'flex';
         
-        // Dispatch event
-        document.dispatchEvent(new CustomEvent('processingComplete', {detail: reqResponse}));
+        // Load block into summary tab
+        if (reqResponse && Array.isArray(reqResponse.blocks) && reqResponse.blocks.length > 0) {
+        // Real API response
+        window.peelbackApp.blocksManager.renderBlocks(reqResponse.blocks);
+        console.log('✓ Results displayed from API response');
+        } else {
+            // Fallback to mock if API failed or returned empty
+            console.warn('API response invalid or empty, falling back to mock');
+            window.peelbackApp.blocksManager.loadMockBlocks();
+        }
     }
 
     resetProgress() {
