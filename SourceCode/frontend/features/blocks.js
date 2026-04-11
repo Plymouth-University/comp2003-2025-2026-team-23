@@ -52,10 +52,14 @@ export class BlocksManager {
             });
         }
 
-        // History buttons
-        document.getElementById('blockUndoBtn')?.addEventListener('click', () => this.undo());
-        document.getElementById('blockRedoBtn')?.addEventListener('click', () => this.redo());
-        document.getElementById('blockClearBtn')?.addEventListener('click', () => this.clearAllChanges());
+        // History buttons — delegated so they survive bar re-renders on tab switch
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            if (btn.id === 'blockUndoBtn') this.undo();
+            else if (btn.id === 'blockRedoBtn') this.redo();
+            else if (btn.id === 'blockClearBtn') this.clearAllChanges();
+        });
 
         document.addEventListener('click', (e) => {
             if (this.isDragging) return;
@@ -174,7 +178,8 @@ export class BlocksManager {
     reinitialize() {
         this.blocksContainer = document.getElementById('blocksContainer');
         if (!this.blocksContainer) return;
-        this.reflowLayout();
+        // Do NOT call reflowLayout() here — the cached HTML already has the
+        // correct data-span values set by the user; recalculating would override them.
         console.log('✓ Blocks reinitialized');
     }
 
@@ -348,6 +353,8 @@ export class BlocksManager {
             }
         }
         this.cleanupDrag();
+        // Cache AFTER cleanup so block-dragging class is gone from the snapshot
+        this.updateCache();
     }
 
     cancelDrag() {
@@ -403,7 +410,6 @@ export class BlocksManager {
             this.fixOrphans();
         }
 
-        this.updateCache();
         console.log(`✓ Dropped → ${zone.type}${zone.side ? '-' + zone.side : ''}`);
     }
 
