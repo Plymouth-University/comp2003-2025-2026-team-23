@@ -129,33 +129,15 @@
                     </p>
                 </div>
 
-                <!-- Editing Controls (Hidden by default) -->
-                <div class="editing-controls" id="editingControls" style="display: none;">
-                    <div class="editing-controls-left">
-                        <button class="btn-edit-control undo-btn" id="undoBtn" title="Undo">
-                            <span class="edit-icon">↶</span>
-                        </button>
-                        <button class="btn-edit-control redo-btn" id="redoBtn" title="Redo">
-                            <span class="edit-icon">↷</span>
-                        </button>
-                    </div>
-                    <div class="editing-controls-right">
-                        <button class="btn-save-changes" id="saveChangesBtn">Save changes</button>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn-action" id="exportBtn" data-action="download" title="Export">
-                        <span class="action-icon">⬇</span>
-                        <span class="action-label">Export</span>
+                <div class="blocks-history-bar" id="blocksHistoryBar">
+                    <button class="btn-history-pill" id="blockUndoBtn" disabled>
+                        <span class="pill-icon">↶</span> Undo
                     </button>
-                    <button class="btn-action" id="copyAllBtn" data-action="copy-all" title="Copy All">
-                        <span class="action-icon">📋</span>
-                        <span class="action-label">Copy All</span>
+                    <button class="btn-history-pill" id="blockRedoBtn" disabled>
+                        <span class="pill-icon">↷</span> Redo
                     </button>
-                    <button class="btn-action" id="copyTabBtn" data-action="copy-tab" title="Copy Current Tab">
-                        <span class="action-icon">📄</span>
-                        <span class="action-label">Copy Tab</span>
+                    <button class="btn-history-pill btn-clear-changes" id="blockClearBtn" disabled>
+                        Clear all changes
                     </button>
                 </div>
             </div>

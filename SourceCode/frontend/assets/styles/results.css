@@ -283,179 +283,60 @@
     background-color: var(--primary-hover);
 }
 
-.editing-controls {
+/* History Bar */
+.blocks-history-bar {
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
     align-items: center;
-    padding: var(--spacing-md) var(--spacing-lg);
-    background-color: white; 
-    border: 1px solid var(--border-light); 
-    border-top: 2px solid #E5E7EB; 
-    border-radius: 0 0 var(--radius-md) var(--radius-md); 
-    margin: 0 var(--spacing-lg) var(--spacing-lg) var(--spacing-lg); 
-    box-shadow: var(--shadow-sm); 
+    padding: 12px 32px 24px;
 }
 
-.editing-controls-left {
-    display: flex;
-    gap: var(--spacing-sm);
-}
-
-.editing-controls-right {
-    display: flex;
-}
-
-/* Undo/Redo Buttons */
-.btn-edit-control {
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: var(--radius-md);
+.btn-history-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1.5px solid #E5E7EB;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 999px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    font-size: 20px;
+    transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+    white-space: nowrap;
 }
 
-.undo-btn {
-    background-color: #D1FAE5;
-    color: #065F46;
+.btn-history-pill .pill-icon {
+    font-size: 16px;
+    line-height: 1;
 }
 
-.undo-btn:hover {
-    background-color: #A7F3D0;
-    transform: translateY(-1px);
+.btn-history-pill:hover:not(:disabled) {
+    background-color: #EEF2FF;
+    border-color: #6366F1;
+    color: #4F46E5;
+    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.2);
 }
 
-.undo-btn:active {
-    transform: translateY(0);
+.btn-history-pill:active:not(:disabled) {
+    background-color: #E0E7FF;
 }
 
-.redo-btn {
-    background-color: #FEF3C7;
-    color: #92400E;
-}
-
-.redo-btn:hover {
-    background-color: #FDE68A;
-    transform: translateY(-1px);
-}
-
-.redo-btn:active {
-    transform: translateY(0);
-}
-
-.btn-edit-control:disabled {
-    opacity: 0.5;
+.btn-history-pill:disabled {
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
-.btn-edit-control:disabled:hover {
-    transform: none;
+.btn-clear-changes {
+    margin-left: auto;
 }
 
-/* Save Changes Button */
-.btn-save-changes {
-    background-color: var(--primary-brand);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-}
-
-.btn-save-changes:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-save-changes:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Action Buttons Container */
-.action-buttons {
-    display: flex;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-    background-color: #FAFAFA;  
-    border-top: none;  
-    justify-content: center;
-}
-
-/* Action Buttons Container */
-.action-buttons {
-    display: flex;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-    background-color: #FAFAFA;
-    border-top: none;
-    justify-content: center;
-}
-
-/* Individual Action Button - Full width with labels */
-.btn-action {
-    background-color: white;
-    border: 2px solid var(--border-light);
-    padding: 12px 24px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-xs);
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-    flex: 1;
-}
-
-.btn-action:hover {
-    background-color: var(--bg-secondary);
-    border-color: var(--primary-brand);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-action:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
-}
-
-.action-icon {
-    font-size: 16px;
-}
-
-.action-label {
-    font-size: 14px;
-    font-weight: 500;
-}
-
-/* Loading state */
-.btn-action.loading {
-    pointer-events: none;
-    opacity: 0.6;
-}
-
-.btn-action.loading .action-icon {
-    animation: spin 1s linear infinite;
-}
-
-/* Success state */
-.btn-action.success {
-    background-color: var(--success);
-    border-color: var(--success);
-    color: white;
+.btn-clear-changes:hover:not(:disabled) {
+    background-color: #FEF2F2;
+    border-color: #FCA5A5;
+    color: #DC2626;
+    box-shadow: 0 1px 4px rgba(220, 38, 38, 0.15);
 }
 
 /* Scrollbar for tab content */
@@ -522,28 +403,15 @@
         font-size: 14px;
     }
     
-    .action-buttons {
-        padding: var(--spacing-md);
-        gap: var(--spacing-sm);
-    }
-    
-    .btn-action {
-        width: 44px;
-        height: 44px;
-    }
-    
-    .action-icon {
-        font-size: 18px;
-    }
 }
 
 /* Print styles */
 @media print {
     .tabs,
-    .action-buttons {
+    .blocks-history-bar {
         display: none;
     }
-    
+
     .tab-content {
         padding: 0;
     }

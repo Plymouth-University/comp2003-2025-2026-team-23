@@ -11,6 +11,10 @@ export class BlocksManager {
             blockOrder: []
         };
 
+        this.undoStack = [];
+        this.redoStack = [];
+        this.initialHTML = null;
+
         this.listenersAttached = false;
         this.fullWidthOnly = new Set(['title']);
 
@@ -47,6 +51,11 @@ export class BlocksManager {
                 this.setEditingMode(editingToggle.checked);
             });
         }
+
+        // History buttons
+        document.getElementById('blockUndoBtn')?.addEventListener('click', () => this.undo());
+        document.getElementById('blockRedoBtn')?.addEventListener('click', () => this.redo());
+        document.getElementById('blockClearBtn')?.addEventListener('click', () => this.clearAllChanges());
 
         document.addEventListener('click', (e) => {
             if (this.isDragging) return;
@@ -119,6 +128,7 @@ export class BlocksManager {
         document.addEventListener('pointerdown', (e) => {
             const handle = e.target.closest('.drag-handle');
             if (!handle) return;
+            if (!document.getElementById('editingModeToggle')?.checked) return;
             const block = handle.closest('.block');
             if (!block || this.fullWidthOnly.has(block.dataset.blockType)) return;
             e.preventDefault();
@@ -150,6 +160,10 @@ export class BlocksManager {
             this.tabContent.innerHTML = this.getMockBlocksHTML();
             this.blocksContainer = document.getElementById('blocksContainer');
             this.reflowLayout();
+            this.initialHTML = this.blocksContainer.innerHTML;
+            this.undoStack = [];
+            this.redoStack = [];
+            this.updateHistoryButtons();
             if (window.peelbackApp && window.peelbackApp.resultsManager) {
                 window.peelbackApp.resultsManager.cacheBlocksHTML();
             }
@@ -322,7 +336,16 @@ export class BlocksManager {
     // ═══════════════════════════════════════════
     endDrag() {
         if (this.activeZone) {
+            const before = this.getBlocks().map(b => ({ el: b, span: b.dataset.span }));
             this.executeDrop(this.activeZone);
+            const after = this.getBlocks().map(b => ({ el: b, span: b.dataset.span }));
+            const changed = before.length !== after.length ||
+                before.some((b, i) => b.el !== after[i]?.el || b.span !== after[i]?.span);
+            if (changed) {
+                this.undoStack.push({ type: 'move', before, after });
+                this.redoStack = [];
+                this.updateHistoryButtons();
+            }
         }
         this.cleanupDrag();
     }
@@ -609,6 +632,7 @@ export class BlocksManager {
     }
 
     startBlockEdit(content) {
+        content._preEditHTML = content.innerHTML;
         content.contentEditable = 'true';
         content.classList.add('block-editing');
         content.closest('.block')?.classList.add('block-active-edit');
@@ -623,14 +647,99 @@ export class BlocksManager {
     }
 
     endBlockEdit(content) {
+        const oldHTML = content._preEditHTML;
+        const newHTML = content.innerHTML;
+        if (oldHTML !== undefined && oldHTML !== newHTML) {
+            this.undoStack.push({ type: 'edit', content, oldHTML, newHTML });
+            this.redoStack = [];
+            this.updateHistoryButtons();
+        }
+        delete content._preEditHTML;
         content.contentEditable = 'false';
         content.classList.remove('block-editing');
         content.closest('.block')?.classList.remove('block-active-edit');
         this.updateCache();
     }
 
+    // ═══════════════════════════════════════════
+    //  UNDO / REDO / CLEAR
+    // ═══════════════════════════════════════════
+    undo() {
+        const action = this.undoStack.pop();
+        if (!action || !this.blocksContainer) return;
+        if (action.type === 'remove') {
+            // Clear any leftover animation styles before re-inserting
+            action.element.style.opacity = '';
+            action.element.style.transform = '';
+            action.element.style.transition = '';
+            action.element.dataset.span = action.span;
+            const blocks = this.getBlocks();
+            if (action.index >= blocks.length) {
+                this.blocksContainer.appendChild(action.element);
+            } else {
+                this.blocksContainer.insertBefore(action.element, blocks[action.index]);
+            }
+            this.fixOrphans();
+        } else if (action.type === 'edit') {
+            action.content.innerHTML = action.oldHTML;
+        } else if (action.type === 'move') {
+            action.before.forEach(({ el, span }) => {
+                el.dataset.span = span;
+                this.blocksContainer.appendChild(el);
+            });
+        }
+        this.redoStack.push(action);
+        this.updateCache();
+        this.updateHistoryButtons();
+    }
+
+    redo() {
+        const action = this.redoStack.pop();
+        if (!action || !this.blocksContainer) return;
+        if (action.type === 'remove') {
+            action.element.remove();
+            this.fixOrphans();
+        } else if (action.type === 'edit') {
+            action.content.innerHTML = action.newHTML;
+        } else if (action.type === 'move') {
+            action.after.forEach(({ el, span }) => {
+                el.dataset.span = span;
+                this.blocksContainer.appendChild(el);
+            });
+        }
+        this.undoStack.push(action);
+        this.updateCache();
+        this.updateHistoryButtons();
+    }
+
+    clearAllChanges() {
+        if (!this.blocksContainer || !this.initialHTML) return;
+        this.blocksContainer.innerHTML = this.initialHTML;
+        // Re-query after innerHTML replacement so the reference stays live
+        this.blocksContainer = document.getElementById('blocksContainer');
+        this.undoStack = [];
+        this.redoStack = [];
+        this.updateCache();
+        this.updateHistoryButtons();
+        console.log('✓ All changes cleared');
+    }
+
+    updateHistoryButtons() {
+        const undoBtn = document.getElementById('blockUndoBtn');
+        const redoBtn = document.getElementById('blockRedoBtn');
+        const clearBtn = document.getElementById('blockClearBtn');
+        if (undoBtn) undoBtn.disabled = this.undoStack.length === 0;
+        if (redoBtn) redoBtn.disabled = this.redoStack.length === 0;
+        if (clearBtn) clearBtn.disabled = this.undoStack.length === 0 && this.redoStack.length === 0;
+    }
+
     removeBlock(blockElement) {
         if (!blockElement || blockElement.dataset.removable !== 'true') return;
+        if (!document.getElementById('editingModeToggle')?.checked) return;
+        const index = this.getBlocks().indexOf(blockElement);
+        this.undoStack.push({ type: 'remove', element: blockElement, index, span: blockElement.dataset.span });
+        this.redoStack = [];
+        this.updateHistoryButtons();
         blockElement.style.opacity = '0';
         blockElement.style.transform = 'scale(0.95)';
         blockElement.style.transition = 'opacity 0.25s, transform 0.25s';
