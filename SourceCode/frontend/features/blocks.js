@@ -477,17 +477,21 @@ export class BlocksManager {
     getMockBlocksHTML() {
         return `
             <div class="blocks-container" id="blocksContainer">
-                <div class="block title-block" data-block-id="1" data-block-type="title" data-editable="false" data-removable="false">
-                    <div class="block-content">
+                <div class="block title-block" data-block-id="1" data-block-type="title" data-editable="true" data-removable="false">
+                    <div class="block-header">
+                        <button class="btn-save-block">Save changes</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h1 class="block-title">Understanding patient views and acceptability of predictive software in osteoporosis identification</h1>
                     </div>
                 </div>
 
-                <div class="block author-block" data-block-id="2" data-block-type="author" data-editable="false" data-removable="false">
+                <div class="block author-block" data-block-id="2" data-block-type="author" data-editable="true" data-removable="false">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
                     </div>
-                    <div class="block-content">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <div style="width:60px;height:60px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;font-weight:600;color:#6366F1;font-size:18px;flex-shrink:0;border:2px solid #E5E7EB;">FM</div>
                         <div class="author-info">
                             <h4>F. Manning</h4>
@@ -497,23 +501,25 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block publication-block" data-block-id="3" data-block-type="publication_info" data-editable="false" data-removable="true">
+                <div class="block publication-block" data-block-id="3" data-block-type="publication_info" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <div class="pub-item"><span class="pub-label">Published:</span><span class="pub-value">2023 (Radiography, Vol. 29)</span></div>
                         <div class="pub-item"><span class="pub-label">DOI:</span><span class="pub-value">10.1016/j.radi.2023.01.015</span></div>
                     </div>
                 </div>
 
-                <div class="block sample-info-block" data-block-id="4" data-block-type="sample_info" data-editable="false" data-removable="true">
+                <div class="block sample-info-block" data-block-id="4" data-block-type="sample_info" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <div class="sample-grid">
                             <div class="sample-item"><span class="sample-label">Sample Size</span><span class="sample-value">14 participants</span></div>
                             <div class="sample-item"><span class="sample-label">Age Range</span><span class="sample-value">55-80 years</span></div>
