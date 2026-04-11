@@ -40,13 +40,79 @@ export class BlocksManager {
     setupGlobalListeners() {
         if (this.listenersAttached) return;
 
+        // Editing Mode toggle
+        const editingToggle = document.getElementById('editingModeToggle');
+        if (editingToggle) {
+            editingToggle.addEventListener('change', () => {
+                this.setEditingMode(editingToggle.checked);
+            });
+        }
+
         document.addEventListener('click', (e) => {
             if (this.isDragging) return;
-            if (e.target.classList.contains('btn-edit-block')) {
-                this.toggleEdit(e.target.closest('.block'), e.target);
-            }
             if (e.target.classList.contains('btn-remove-block')) {
                 this.removeBlock(e.target.closest('.block'));
+                return;
+            }
+            if (e.target.classList.contains('btn-save-block')) {
+                const block = e.target.closest('.block');
+                const content = block?.querySelector('.block-content[data-editable-mode]');
+                if (content) this.endBlockEdit(content);
+                return;
+            }
+            // Click-to-edit when editing mode is on
+            if (document.getElementById('editingModeToggle')?.checked) {
+                const content = e.target.closest('.block-content[data-editable-mode]');
+                if (content && content.contentEditable !== 'true') {
+                    this.startBlockEdit(content);
+                }
+            }
+        });
+
+        document.addEventListener('focusout', (e) => {
+            const content = e.target.closest ? e.target : null;
+            if (content && content.classList?.contains('block-content') && content.contentEditable === 'true') {
+                // Small delay so a click on btn-save-block isn't swallowed by blur
+                setTimeout(() => {
+                    if (content.contentEditable === 'true') this.endBlockEdit(content);
+                }, 100);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const content = document.activeElement;
+            if (!content?.classList?.contains('block-content') || content.contentEditable !== 'true') return;
+            if (e.shiftKey) {
+                // Shift+Enter: insert line break
+                e.preventDefault();
+                const sel = window.getSelection();
+                if (!sel || sel.rangeCount === 0) return;
+                const range = sel.getRangeAt(0);
+                range.deleteContents();
+                const br = document.createElement('br');
+                range.insertNode(br);
+                // Move caret after the <br>
+                range.setStartAfter(br);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else {
+                // Enter: save
+                e.preventDefault();
+                content.blur();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.isDragging) {
+                    this.cancelDrag();
+                } else {
+                    // Exit any active block edit
+                    const active = document.querySelector('.block-content[contenteditable="true"]');
+                    if (active) active.blur();
+                }
             }
         });
 
@@ -71,9 +137,6 @@ export class BlocksManager {
             this.endDrag();
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isDragging) this.cancelDrag();
-        });
 
         this.listenersAttached = true;
         console.log('✓ Global listeners attached');
@@ -440,10 +503,10 @@ export class BlocksManager {
                 <div class="block summary-block" data-block-id="5" data-block-type="summary" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content" contenteditable="false">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h3>Summary</h3>
                         <p>This study explored how patients feel about using predictive software to identify osteoporosis risk from routine X-rays. Researchers spoke with 14 people aged 55-80 who were already attending screening appointments. While participants saw benefits in catching bone problems early, they were concerned about getting unexpected results without proper explanation from a healthcare professional.</p>
                     </div>
@@ -452,10 +515,10 @@ export class BlocksManager {
                 <div class="block text-block" data-block-id="6" data-block-type="text_section" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content" contenteditable="false">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h3>Concerns</h3>
                         <p>Some participants worried about receiving an unexpected diagnosis through a screening tool they did not fully understand. There was concern that results delivered without explanation could cause anxiety or confusion, especially if the finding was serious or unexpected.</p>
                     </div>
@@ -464,10 +527,10 @@ export class BlocksManager {
                 <div class="block stats-block" data-block-id="7" data-block-type="stats" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content" contenteditable="false">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h3>Key Statistics</h3>
                         <div class="stats-grid">
                             <div class="stat-item"><span class="stat-label">Response Rate</span><span class="stat-value">87%</span></div>
@@ -481,10 +544,10 @@ export class BlocksManager {
                 <div class="block findings-block" data-block-id="8" data-block-type="key_findings" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content" contenteditable="false">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h3>Key Findings</h3>
                         <ul>
                             <li>Participants expressed concerns about receiving unexpected diagnoses without clinical context</li>
@@ -497,10 +560,10 @@ export class BlocksManager {
                 <div class="block implications-block" data-block-id="9" data-block-type="implications" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content" contenteditable="false">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h3>What This Means for You</h3>
                         <p>If you're having routine X-rays, this technology could help spot bone weakness early, giving you time to make changes or start treatment before a fracture happens. However, it's important that results are explained clearly by a healthcare professional who can answer your questions and discuss next steps with you.</p>
                     </div>
@@ -509,10 +572,10 @@ export class BlocksManager {
                 <div class="block recommendations-block" data-block-id="10" data-block-type="recommendations" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
-                        <button class="btn-edit-block" title="Edit">✏️</button>
+                        <button class="btn-save-block">Save changes</button>
                         <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
-                    <div class="block-content" contenteditable="false">
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
                         <h3>Recommendations</h3>
                         <ul>
                             <li>Discuss predictive screening options with your healthcare provider during your next appointment</li>
@@ -526,20 +589,44 @@ export class BlocksManager {
     }
 
     // ═══════════════════════════════════════════
-    //  EDIT / REMOVE
+    //  EDITING MODE
     // ═══════════════════════════════════════════
-    toggleEdit(blockElement, editBtn) {
-        if (!blockElement || blockElement.dataset.editable !== 'true') return;
-        const content = blockElement.querySelector('.block-content');
-        if (content.contentEditable === 'true') {
-            content.contentEditable = 'false';
-            editBtn.textContent = '✏️';
-            this.updateCache();
-        } else {
-            content.contentEditable = 'true';
-            editBtn.textContent = '💾';
-            content.focus();
-        }
+    setEditingMode(enabled) {
+        const container = document.getElementById('blocksContainer');
+        if (!container) return;
+        const editableContents = container.querySelectorAll('.block-content[data-editable-mode]');
+        editableContents.forEach(content => {
+            if (enabled) {
+                content.classList.add('editing-mode-active');
+            } else {
+                content.classList.remove('editing-mode-active');
+                if (content.contentEditable === 'true') {
+                    this.endBlockEdit(content);
+                }
+            }
+        });
+        console.log(`✓ Editing mode ${enabled ? 'ON' : 'OFF'}`);
+    }
+
+    startBlockEdit(content) {
+        content.contentEditable = 'true';
+        content.classList.add('block-editing');
+        content.closest('.block')?.classList.add('block-active-edit');
+        content.focus();
+        // Place cursor at end
+        const range = document.createRange();
+        range.selectNodeContents(content);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    endBlockEdit(content) {
+        content.contentEditable = 'false';
+        content.classList.remove('block-editing');
+        content.closest('.block')?.classList.remove('block-active-edit');
+        this.updateCache();
     }
 
     removeBlock(blockElement) {

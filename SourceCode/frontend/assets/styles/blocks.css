@@ -116,7 +116,28 @@
 
 .drag-handle:active { cursor: grabbing; }
 
-.btn-edit-block,
+.btn-save-block {
+    display: none;
+    margin-left: auto;
+    background-color: #6366F1;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+
+.btn-save-block:hover {
+    background-color: #4F46E5;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.block-active-edit .btn-save-block { display: inline-flex; align-items: center; }
+
 .btn-remove-block {
     background: none;
     border: none;
@@ -127,9 +148,26 @@
     transition: all 0.2s;
 }
 
-.btn-edit-block { margin-left: auto; }
-.btn-edit-block:hover { background-color: #EEF2FF; color: #6366F1; }
 .btn-remove-block:hover { background-color: #FEE2E2; color: #DC2626; }
+
+/* Editing mode: clickable hover on editable blocks */
+.block-content[data-editable-mode].editing-mode-active {
+    cursor: text;
+    border-radius: 8px;
+    transition: background-color 0.15s;
+}
+
+.block-content[data-editable-mode].editing-mode-active:hover {
+    background-color: #FEFCE8;
+    outline: 1px dashed #D1D5DB;
+}
+
+.block-content.block-editing {
+    outline: 2px dashed #6366F1 !important;
+    background-color: #FEFCE8 !important;
+    border-radius: 8px;
+    padding: 12px;
+}
 
 /* ============================================
    BLOCK CONTENT
@@ -171,12 +209,6 @@
     font-size: 16px;
 }
 
-.block-content[contenteditable="true"] {
-    outline: 2px dashed #6366F1;
-    background-color: #FEFCE8;
-    border-radius: 8px;
-    padding: 12px;
-}
 
 /* ============================================
    BLOCK TYPES
@@ -259,5 +291,5 @@
 
 @media print {
     .block { break-inside: avoid; page-break-inside: avoid; }
-    .block-header, .drag-handle, .btn-edit-block, .btn-remove-block { display: none; }
+    .block-header, .drag-handle, .btn-remove-block { display: none; }
 }
