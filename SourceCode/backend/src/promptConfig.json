@@ -1,0 +1,23 @@
+{
+  "medical_summary": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.2,
+    "base_instruction": "You are an AI assistant that extracts key information from medical research PDF documents. Prioritise using as many words or bullet points as needed to extract the full detail.",
+    "schema": {
+      "summary": "string",
+      "key_points": ["string"],
+      "recommendations": ["string"]
+    },
+    "audiences": {
+      "policy_maker": {
+        "instruction": "Summarise for health policy makers. Focus on system-level implications, cost impact, scalability, and population outcomes."
+      },
+      "nhs_clinician": {
+        "instruction": "Summarise for NHS clinicians. Focus on clinical relevance, treatment implications, risks, and practice impact."
+      },
+      "patient": {
+        "instruction": "Summarise for patients using clear, non-technical language. Focus on what it means for them, risks, benefits, and practical advice."
+      }
+    }
+  }
+}

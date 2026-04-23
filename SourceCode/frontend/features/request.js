@@ -3,9 +3,11 @@
  * Handles requests to the backend server
  */
 
+import { settings } from "../settings.js";
+
 export class RequestManager {
     constructor() {
-        this.backendServerURL = "http://127.0.0.1:3000/api"; // Currently hardcoded
+        this.backendServerURL = settings.backendURL;
         this.fileReader = new FileReader();
     }
 
@@ -28,22 +30,43 @@ export class RequestManager {
             return false;
         }
 
+        // ADDED: prevent request if audience not selected
+        if (!peelbackApp.getSelectedAudience()) {
+            console.error("No audience selected");
+            return false;
+        }
+
         // Populate FormData
         const formData = new FormData();
-        formData.append("audience", "patient");
-        formData.append("simplification", 5);
+
+        // REQUIRED by backend
+        formData.append("task", "medical_summary");
+
+        // CHANGED: use selected audience from ControlsManager
+        formData.append("audience", peelbackApp.getSelectedAudience());
+
+        // ADDED: send complexity (1–5 from slider)
+        formData.append("complexity", peelbackApp.getComplexityLevel());
+
         formData.append("sentPDF", peelbackApp.getUploadedFile());
 
         let response = null;
         try {
             response = await fetch(this.backendServerURL + "/prompt",{
                 method: "POST",
-                //headers: {"Content-Type":"multipart/form-data"},
-                //body: JSON.stringify({"audience":"", "simplification":-1 , "file":0})
                 body: formData
             });
-            console.log(response);
-            return response.text();
+
+            const text = await response.text();
+            console.log("Raw response:", text);
+            const parsed = JSON.parse(text);
+
+            if (!parsed.blocks || !Array.isArray(parsed.blocks)) {
+                console.error("Unexpected response shape:", parsed);
+                return false;
+            }
+
+            return parsed
         } catch {
             return false;
         }
