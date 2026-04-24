@@ -933,13 +933,13 @@ export class BlocksManager {
     const { editable, removable, cssClass } = schema;
 
     return `
-        <div class="block ${cssClass}"data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}">
+        <div class="block ${cssClass}" data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}">
             <div class="block-header">
                 ${type !== 'title' ? '<span class="drag-handle">⋮⋮</span>' : ''}
-                ${editable  ? '<button class="btn-edit-block"  title="Edit">✏️</button>'   : ''}
+                ${editable  ? '<button class="btn-save-block">Save changes</button>'       : ''}
                 ${removable ? '<button class="btn-remove-block" title="Remove">✕</button>' : ''}
             </div>
-            <div class="block-content" contenteditable="false">
+            <div class="block-content" contenteditable="false" data-editable-mode="true">
                 ${content}
             </div>
         </div>`;
