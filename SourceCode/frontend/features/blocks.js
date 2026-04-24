@@ -3,6 +3,77 @@
  */
 
 export class BlocksManager {
+
+    BLOCK_SCHEMA = {
+        title:            { cssClass: 'title-block',            editable: false, removable: false },
+        author:           { cssClass: 'author-block',           editable: false, removable: false },
+        publication_info: { cssClass: 'publication-block',      editable: false, removable: true  },
+        sample_info:      { cssClass: 'sample-info-block',      editable: false, removable: true  },
+        summary:          { cssClass: 'summary-block',          editable: true,  removable: true  },
+        text_section:     { cssClass: 'text-block',             editable: true,  removable: true  },
+        stats:            { cssClass: 'stats-block',            editable: true,  removable: true  },
+        key_findings:     { cssClass: 'findings-block',         editable: true,  removable: true  },
+        implications:     { cssClass: 'implications-block',     editable: true,  removable: true  },
+        recommendations:  { cssClass: 'recommendations-block',  editable: true,  removable: true  },
+    };
+
+    RENDERERS = {
+        title: ({ title }) =>
+            `<h1 class="block-title">${title}</h1>`,
+
+        author: ({ authors }) => authors.map(({ initials, name, department, institution }) => `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <div style="width:60px;height:60px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;font-weight:600;color:#6366F1;font-size:18px;flex-shrink:0;">
+                    ${initials}
+                </div>
+                <div class="author-info">
+                    <h4>${name}</h4>
+                    <p>${department}</p>
+                    <p>${institution}</p>
+                </div>
+            </div>`).join(''),
+
+        publication_info: ({ published, doi }) => `
+            <div class="pub-item"><span class="pub-label">Published:</span><span class="pub-value">${published}</span></div>
+            <div class="pub-item"><span class="pub-label">DOI:</span><span class="pub-value">${doi ?? 'N/A'}</span></div>`,
+
+        sample_info: ({ items }) => `
+            <div class="sample-grid">
+                ${items.map(({ label, value }) => `
+                    <div class="sample-item">
+                        <span class="sample-label">${label}</span>
+                        <span class="sample-value">${value}</span>
+                    </div>`).join('')}
+            </div>`,
+
+        summary: ({ heading, body }) =>
+            `<h3>${heading}</h3><p>${body}</p>`,
+
+        text_section: ({ heading, body }) =>
+            `<h3>${heading}</h3><p>${body}</p>`,
+
+        stats: ({ items }) => `
+            <h3>Key Statistics</h3>
+            <div class="stats-grid">
+                ${items.map(({ label, value }) => `
+                    <div class="stat-item">
+                        <span class="stat-label">${label}</span>
+                        <span class="stat-value">${value}</span>
+                    </div>`).join('')}
+            </div>`,
+
+        key_findings: ({ heading, items }) => `
+            <h3>${heading ?? 'Key Findings'}</h3>
+            <ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`,
+
+        implications: ({ heading, body }) =>
+            `<h3>${heading ?? 'What This Means for You'}</h3><p>${body}</p>`,
+
+        recommendations: ({ heading, items }) => `
+            <h3>${heading ?? 'Recommendations'}</h3>
+            <ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`,
+    };
+
     constructor() {
         this.state = {
             originalBlocks: [],
@@ -809,5 +880,56 @@ export class BlocksManager {
             this.fixOrphans();
             this.updateCache();
         }, 250);
+    }
+
+
+    // ═══════════════════════════════════════════
+    //  New Rendering System
+    // ═══════════════════════════════════════════
+
+    renderBlocks(blocksData) {
+    if (!this.tabContent) return;
+
+    const blocksHTML = blocksData
+        .filter(({ type, data }) => this.BLOCK_SCHEMA[type] && data && typeof data === 'object')
+        .map(({ type, data }, index) => this.buildBlockHTML(type, data, index + 1))
+        .join('');
+
+    this.tabContent.innerHTML = `
+        <div class="blocks-container" id="blocksContainer">
+            ${blocksHTML}
+        </div>`;
+
+    this.blocksContainer = document.getElementById('blocksContainer');
+    this.reflowLayout();
+    this.updateCache();
+    console.log(`✓ Rendered ${blocksData.length} blocks`);
+    }
+
+    buildBlockHTML(type, data, id) {
+    const schema = this.BLOCK_SCHEMA[type];
+    const renderer = this.RENDERERS[type];
+
+    let content = '';
+    try {
+        content = renderer ? renderer(data) : `<p>${JSON.stringify(data)}</p>`;
+    } catch (err) {
+        console.warn(`Renderer failed for block type "${type}":`, err);
+        content = '<p>Content unavailable</p>';
+    }
+
+    const { editable, removable, cssClass } = schema;
+
+    return `
+        <div class="block ${cssClass}"data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}">
+            <div class="block-header">
+                ${type !== 'title' ? '<span class="drag-handle">⋮⋮</span>' : ''}
+                ${editable  ? '<button class="btn-edit-block"  title="Edit">✏️</button>'   : ''}
+                ${removable ? '<button class="btn-remove-block" title="Remove">✕</button>' : ''}
+            </div>
+            <div class="block-content" contenteditable="false">
+                ${content}
+            </div>
+        </div>`;
     }
 }
