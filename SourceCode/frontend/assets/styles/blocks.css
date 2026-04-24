@@ -223,9 +223,10 @@
 
 .author-block { background: #FAFAFA; border-color: #D1D5DB; }
 .author-block .block-content { display: flex; gap: 16px; align-items: center; padding: 12px; }
-.author-info { flex: 1; }
-.author-info h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #111827; }
-.author-info p { font-size: 12px; color: #6B7280; margin-bottom: 2px; line-height: 1.4; }
+.author-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; border: 2px solid rgba(0,0,0,0.06); }
+.author-info { flex: 1; min-width: 0; overflow: hidden; }
+.author-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.author-info p { font-size: 12px; color: #6B7280; margin-bottom: 2px; line-height: 1.4; overflow-wrap: break-word; word-break: break-word; }
 
 .publication-block { background-color: #F9FAFB; border-color: #D1D5DB; }
 .publication-block .block-content { display: flex; flex-direction: column; gap: 10px; }
@@ -286,7 +287,8 @@
     .blocks-container { padding: 16px; gap: 12px; }
     .block { padding: 12px; }
     .block-title { font-size: 22px; }
-    .author-block .block-content { flex-direction: column; text-align: center; }
+    .author-block .block-content { flex-direction: column; text-align: center; align-items: center; }
+    .author-info h4 { white-space: normal; }
     .sample-grid, .stats-grid { grid-template-columns: 1fr; }
 }
 

@@ -492,13 +492,14 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block author-block" data-block-id="2" data-block-type="author" data-editable="true" data-removable="false">
+                <div class="block author-block" data-block-id="2" data-block-type="author" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
                     </div>
                     <div class="block-content" contenteditable="false" data-editable-mode="true">
-                        <div style="width:60px;height:60px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;font-weight:600;color:#6366F1;font-size:18px;flex-shrink:0;border:2px solid #E5E7EB;">FM</div>
+                        <div class="author-avatar" style="background:#E5E7EB;color:#6366F1;">FM</div>
                         <div class="author-info">
                             <h4>F. Manning</h4>
                             <p>Department of Health and Care Professions</p>
@@ -507,7 +508,55 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block publication-block" data-block-id="3" data-block-type="publication_info" data-editable="true" data-removable="true">
+                <div class="block author-block" data-block-id="3" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#E0F2FE;color:#0369A1;">LR</div>
+                        <div class="author-info">
+                            <h4>L. Roberts</h4>
+                            <p>Department of Radiology</p>
+                            <p>University College London, London, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block author-block" data-block-id="4" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#FEF3C7;color:#92400E;">AC</div>
+                        <div class="author-info">
+                            <h4>A. Chen</h4>
+                            <p>Institute of Health Informatics</p>
+                            <p>King's College London, London, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block author-block" data-block-id="5" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#F0FDF4;color:#166534;">MW</div>
+                        <div class="author-info">
+                            <h4>M. Williams</h4>
+                            <p>School of Medicine</p>
+                            <p>University of Birmingham, Birmingham, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block publication-block" data-block-id="6" data-block-type="publication_info" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -519,7 +568,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block sample-info-block" data-block-id="4" data-block-type="sample_info" data-editable="true" data-removable="true">
+                <div class="block sample-info-block" data-block-id="7" data-block-type="sample_info" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -535,7 +584,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block summary-block" data-block-id="5" data-block-type="summary" data-editable="true" data-removable="true">
+                <div class="block summary-block" data-block-id="8" data-block-type="summary" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -547,7 +596,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block text-block" data-block-id="6" data-block-type="text_section" data-editable="true" data-removable="true">
+                <div class="block text-block" data-block-id="9" data-block-type="text_section" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -559,7 +608,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block stats-block" data-block-id="7" data-block-type="stats" data-editable="true" data-removable="true">
+                <div class="block stats-block" data-block-id="10" data-block-type="stats" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -576,7 +625,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block findings-block" data-block-id="8" data-block-type="key_findings" data-editable="true" data-removable="true">
+                <div class="block findings-block" data-block-id="11" data-block-type="key_findings" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -592,7 +641,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block implications-block" data-block-id="9" data-block-type="implications" data-editable="true" data-removable="true">
+                <div class="block implications-block" data-block-id="12" data-block-type="implications" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
@@ -604,7 +653,7 @@ export class BlocksManager {
                     </div>
                 </div>
 
-                <div class="block recommendations-block" data-block-id="10" data-block-type="recommendations" data-editable="true" data-removable="true">
+                <div class="block recommendations-block" data-block-id="13" data-block-type="recommendations" data-editable="true" data-removable="true">
                     <div class="block-header">
                         <span class="drag-handle">⋮⋮</span>
                         <button class="btn-save-block">Save changes</button>
