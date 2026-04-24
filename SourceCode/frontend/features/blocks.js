@@ -890,7 +890,19 @@ export class BlocksManager {
     renderBlocks(blocksData) {
     if (!this.tabContent) return;
 
-    const blocksHTML = blocksData
+    // Expand author blocks so each author gets its own block, matching mock behaviour
+    const expandedData = [];
+    blocksData.forEach(({ type, data }) => {
+        if (type === 'author' && Array.isArray(data?.authors)) {
+            data.authors.forEach(author => {
+                expandedData.push({ type: 'author', data: { authors: [author] } });
+            });
+        } else {
+            expandedData.push({ type, data });
+        }
+    });
+
+    const blocksHTML = expandedData
         .filter(({ type, data }) => this.BLOCK_SCHEMA[type] && data && typeof data === 'object')
         .map(({ type, data }, index) => this.buildBlockHTML(type, data, index + 1))
         .join('');
@@ -903,7 +915,7 @@ export class BlocksManager {
     this.blocksContainer = document.getElementById('blocksContainer');
     this.reflowLayout();
     this.updateCache();
-    console.log(`✓ Rendered ${blocksData.length} blocks`);
+    console.log(`✓ Rendered ${expandedData.length} blocks`);
     }
 
     buildBlockHTML(type, data, id) {
