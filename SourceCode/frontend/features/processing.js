@@ -94,7 +94,8 @@ export class ProcessingManager {
             app.blocksManager.renderBlocks(reqResponse.blocks);
             console.log('✓ Results displayed from API response');
 
-            // Persist to history
+            // Persist to history — capture the rendered HTML so edits and
+            // reordering the user makes later are saved via updateCurrentEntry
             const audience = app.controlsManager.getSelectedAudience() || 'patient';
             const paperName = this.extractPaperName(reqResponse.blocks)
                 || app.uploadManager.uploadedFile?.name?.replace(/\.[^.]+$/, '')
@@ -103,11 +104,21 @@ export class ProcessingManager {
                 paperName,
                 audience,
                 complexity: app.controlsManager.getComplexityLevel(),
-                blocksData: reqResponse.blocks,
+                blocksHTML: app.blocksManager.tabContent?.innerHTML ?? '',
             });
         } else {
             console.warn('API response invalid or empty, falling back to mock');
             app.blocksManager.loadMockBlocks();
+
+            // Also persist the mock result so edits and reordering are tracked
+            const audience = app.controlsManager.getSelectedAudience() || 'patient';
+            const fileName = app.uploadManager.uploadedFile?.name?.replace(/\.[^.]+$/, '');
+            app.historyManager.addHistoryItem({
+                paperName: fileName || 'Sample Document',
+                audience,
+                complexity: app.controlsManager.getComplexityLevel(),
+                blocksHTML: app.blocksManager.tabContent?.innerHTML ?? '',
+            });
         }
     }
 

@@ -15,6 +15,7 @@ const AUDIENCE_LABELS = {
 export class HistoryManager {
     constructor() {
         this.isOpen = false;
+        this.currentEntryId = null;
         this.initElements();
         this.renderHistoryList();
         this.attachEventListeners();
@@ -69,18 +70,64 @@ export class HistoryManager {
         }
     }
 
-    addHistoryItem({ paperName, audience, complexity, blocksData }) {
+    addHistoryItem({ paperName, audience, complexity, blocksHTML }) {
         const items = this.getHistoryItems();
-        items.unshift({
+        const entry = {
             id: Date.now().toString(),
             paperName,
             audience,
             audienceLabel: AUDIENCE_LABELS[audience] || audience,
             complexity,
             date: new Date().toISOString(),
-            blocksData,
-        });
+            blocksHTML,
+            edits: {},
+        };
+        items.unshift(entry);
         if (items.length > MAX_ITEMS) items.length = MAX_ITEMS;
+        this.saveHistoryItems(items);
+        this.currentEntryId = entry.id;
+    }
+
+    updateCurrentEntry(blocksHTML) {
+        if (!this.currentEntryId || !blocksHTML) return;
+        const items = this.getHistoryItems();
+        const entry = items.find(i => i.id === this.currentEntryId);
+        if (entry) {
+            entry.blocksHTML = blocksHTML;
+            this.saveHistoryItems(items);
+        }
+    }
+
+    /**
+     * Records a single block's edited content. Called on every keystroke
+     * (debounced) and on endBlockEdit, so even a mid-edit reload preserves
+     * the latest typed content.
+     */
+    recordEdit(blockId, contentHTML) {
+        if (!this.currentEntryId || !blockId) return;
+        const items = this.getHistoryItems();
+        const entry = items.find(i => i.id === this.currentEntryId);
+        if (!entry) return;
+        if (!entry.edits) entry.edits = {};
+        entry.edits[blockId] = contentHTML;
+        this.saveHistoryItems(items);
+    }
+
+    applyEdits(edits) {
+        if (!edits) return;
+        Object.entries(edits).forEach(([blockId, html]) => {
+            const block = document.querySelector(`.block[data-block-id="${blockId}"]`);
+            const content = block?.querySelector('.block-content');
+            if (content) content.innerHTML = html;
+        });
+    }
+
+    clearEdits() {
+        if (!this.currentEntryId) return;
+        const items = this.getHistoryItems();
+        const entry = items.find(i => i.id === this.currentEntryId);
+        if (!entry) return;
+        entry.edits = {};
         this.saveHistoryItems(items);
     }
 
@@ -137,14 +184,44 @@ export class HistoryManager {
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('resultsContainer').style.display = 'flex';
 
-        // Clear any stale cached blocks so switchTab doesn't flash old content
-        app.resultsManager.blocksHTML = null;
-        app.resultsManager.switchTab('tab1');
+        this.currentEntryId = entry.id;
 
-        // Render blocks — renderBlocks() calls updateCache() which calls cacheBlocksHTML()
-        app.blocksManager.renderBlocks(entry.blocksData);
+        // Force-switch to the Result tab BEFORE writing blocks, so the export
+        // preview wrapper (tab2/tab3) can't interfere with the load.
+        this.forceResultTab(app);
+
+        if (entry.blocksHTML) {
+            app.resultsManager.blocksHTML = entry.blocksHTML;
+            app.blocksManager.tabContent.innerHTML = entry.blocksHTML;
+            app.blocksManager.reinitialize?.();
+            app.blocksManager.resetHistoryState?.();
+        } else if (entry.blocksData) {
+            app.resultsManager.blocksHTML = null;
+            app.blocksManager.renderBlocks(entry.blocksData);
+            app.blocksManager.resetHistoryState?.();
+        }
+
+        // Apply per-block edits over the restored HTML — this is the
+        // authoritative source for text changes, captured on every keystroke
+        this.applyEdits(entry.edits);
+        // Re-cache so the result tab matches what the user sees
+        app.resultsManager.cacheBlocksHTML();
 
         this.closePanel();
+    }
+
+    /**
+     * Hard-reset the results UI to the Result tab state, regardless of which
+     * tab was active. Avoids the stale-tab-content bugs when loading from
+     * history while on the PDF or Plain Text export tabs.
+     */
+    forceResultTab(app) {
+        const rm = app.resultsManager;
+        rm.currentTab = 'tab1';
+        rm.tabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('[data-tab="tab1"]')?.classList.add('active');
+        document.querySelector('.editing-toggle')?.classList.remove('editing-toggle--hidden');
+        rm.updateBottomBar('tab1');
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

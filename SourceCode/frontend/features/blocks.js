@@ -200,6 +200,21 @@ export class BlocksManager {
             }
         });
 
+        // Debounced input capture — records every keystroke per block so a
+        // mid-edit reload still preserves what the user typed
+        this._inputDebounce = null;
+        document.addEventListener('input', (e) => {
+            const content = e.target.closest?.('.block-content');
+            if (!content || content.contentEditable !== 'true') return;
+            const block = content.closest('.block');
+            const blockId = block?.dataset.blockId;
+            if (!blockId) return;
+            clearTimeout(this._inputDebounce);
+            this._inputDebounce = setTimeout(() => {
+                window.peelbackApp?.historyManager?.recordEdit(blockId, content.innerHTML);
+            }, 300);
+        });
+
         document.addEventListener('pointerdown', (e) => {
             const handle = e.target.closest('.drag-handle');
             if (!handle) return;
@@ -239,9 +254,7 @@ export class BlocksManager {
             this.undoStack = [];
             this.redoStack = [];
             this.updateHistoryButtons();
-            if (window.peelbackApp && window.peelbackApp.resultsManager) {
-                window.peelbackApp.resultsManager.cacheBlocksHTML();
-            }
+            this.updateCache();
             console.log('✓ Mock blocks loaded');
         }
     }
@@ -543,9 +556,22 @@ export class BlocksManager {
     }
 
     updateCache() {
-        if (window.peelbackApp && window.peelbackApp.resultsManager) {
-            window.peelbackApp.resultsManager.cacheBlocksHTML();
+        const app = window.peelbackApp;
+        if (!app) return;
+        app.resultsManager?.cacheBlocksHTML();
+        // Keep the active history entry in sync with the current blocks state
+        if (this.tabContent) {
+            app.historyManager?.updateCurrentEntry(this.tabContent.innerHTML);
         }
+    }
+
+    resetHistoryState() {
+        this.blocksContainer = document.getElementById('blocksContainer');
+        if (!this.blocksContainer) return;
+        this.initialHTML = this.blocksContainer.innerHTML;
+        this.undoStack = [];
+        this.redoStack = [];
+        this.updateHistoryButtons();
     }
 
     // ═══════════════════════════════════════════
@@ -790,6 +816,14 @@ export class BlocksManager {
         content.contentEditable = 'false';
         content.classList.remove('block-editing');
         content.closest('.block')?.classList.remove('block-active-edit');
+
+        // Final flush — persist this edit immediately so reload always sees it
+        const blockId = content.closest('.block')?.dataset.blockId;
+        if (blockId) {
+            clearTimeout(this._inputDebounce);
+            window.peelbackApp?.historyManager?.recordEdit(blockId, newHTML);
+        }
+
         this.updateCache();
     }
 
@@ -851,6 +885,8 @@ export class BlocksManager {
         this.blocksContainer = document.getElementById('blocksContainer');
         this.undoStack = [];
         this.redoStack = [];
+        // Clear persisted edits so they don't get re-applied on next load
+        window.peelbackApp?.historyManager?.clearEdits();
         this.updateCache();
         this.updateHistoryButtons();
         console.log('✓ All changes cleared');
