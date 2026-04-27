@@ -559,10 +559,8 @@ export class BlocksManager {
         const app = window.peelbackApp;
         if (!app) return;
         app.resultsManager?.cacheBlocksHTML();
-        // Keep the active history entry in sync with the current blocks state
-        if (this.tabContent) {
-            app.historyManager?.updateCurrentEntry(this.tabContent.innerHTML);
-        }
+        // Structured snapshot — single source of truth for the active entry
+        app.historyManager?.snapshotFromDOM();
     }
 
     resetHistoryState() {
@@ -572,6 +570,37 @@ export class BlocksManager {
         this.undoStack = [];
         this.redoStack = [];
         this.updateHistoryButtons();
+    }
+
+    /**
+     * Deterministically renders blocks from a structured array
+     * (id, type, span, contentHTML). This is the load path for history
+     * entries — no parsing, no cloning, no reflow side effects.
+     */
+    renderFromBlocks(blocks) {
+        if (!this.tabContent || !Array.isArray(blocks)) return;
+
+        const html = blocks.map(({ id, type, span, contentHTML }) => {
+            const schema = this.BLOCK_SCHEMA[type];
+            if (!schema) return '';
+            const { editable, removable, cssClass } = schema;
+            const safeSpan = span === 2 ? 2 : 1;
+            return `
+                <div class="block ${cssClass}" data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}" data-span="${safeSpan}">
+                    <div class="block-header">
+                        ${type !== 'title' ? '<span class="drag-handle">⋮⋮</span>' : ''}
+                        ${editable  ? '<button class="btn-save-block">Save changes</button>'       : ''}
+                        ${removable ? '<button class="btn-remove-block" title="Remove">✕</button>' : ''}
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        ${contentHTML || ''}
+                    </div>
+                </div>`;
+        }).join('');
+
+        this.tabContent.innerHTML = `<div class="blocks-container" id="blocksContainer">${html}</div>`;
+        this.blocksContainer = document.getElementById('blocksContainer');
+        console.log(`✓ Rendered ${blocks.length} blocks from history state`);
     }
 
     // ═══════════════════════════════════════════
