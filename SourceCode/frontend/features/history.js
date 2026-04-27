@@ -148,13 +148,46 @@ export class HistoryManager {
             audienceLabel: AUDIENCE_LABELS[audience] || audience,
             complexity,
             date: new Date().toISOString(),
+            // `blocks` is the live state (mutated by every save).
+            // `originalBlocks` is a frozen snapshot of the initial render,
+            // used by Clear All Changes to revert to the original output.
             blocks,
+            originalBlocks: JSON.parse(JSON.stringify(blocks)),
         };
         items.unshift(entry);
         if (items.length > MAX_ITEMS) items.length = MAX_ITEMS;
         this.saveHistoryItems(items);
         this.currentEntryId = entry.id;
         return entry.id;
+    }
+
+    /**
+     * Backfills originalBlocks for the active entry if absent. Used during
+     * legacy migration so Clear All Changes has a baseline to revert to.
+     */
+    ensureOriginalBlocks() {
+        if (!this.currentEntryId) return;
+        const items = this.getHistoryItems();
+        const entry = items.find(i => i.id === this.currentEntryId);
+        if (!entry) return;
+        if (Array.isArray(entry.originalBlocks) && entry.originalBlocks.length) return;
+        if (!Array.isArray(entry.blocks) || entry.blocks.length === 0) return;
+        entry.originalBlocks = JSON.parse(JSON.stringify(entry.blocks));
+        this.saveHistoryItems(items);
+    }
+
+    /**
+     * Returns a deep copy of the active entry's original-render snapshot,
+     * or null if none is available. Used by Clear All Changes.
+     */
+    getOriginalBlocks() {
+        if (!this.currentEntryId) return null;
+        const entry = this.getHistoryItems().find(i => i.id === this.currentEntryId);
+        if (!entry) return null;
+        const source = Array.isArray(entry.originalBlocks) && entry.originalBlocks.length
+            ? entry.originalBlocks
+            : entry.blocks;
+        return Array.isArray(source) ? JSON.parse(JSON.stringify(source)) : null;
     }
 
     // ─── List rendering ───────────────────────────────────────────────────────
@@ -228,6 +261,9 @@ export class HistoryManager {
         if (!Array.isArray(entry.blocks) || entry.blocks.length === 0) {
             this.snapshotFromDOM();
         }
+        // Seed originalBlocks for any entry that lacks one (legacy migration
+        // baseline — the best original we can recover is the loaded state)
+        this.ensureOriginalBlocks();
         app.resultsManager.cacheBlocksHTML();
 
         this.closePanel();
