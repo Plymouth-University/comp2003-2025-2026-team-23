@@ -908,14 +908,26 @@ export class BlocksManager {
     }
 
     clearAllChanges() {
-        if (!this.blocksContainer || !this.initialHTML) return;
-        this.blocksContainer.innerHTML = this.initialHTML;
-        // Re-query after innerHTML replacement so the reference stays live
-        this.blocksContainer = document.getElementById('blocksContainer');
+        const history = window.peelbackApp?.historyManager;
+        const original = history?.getOriginalBlocks?.();
+
+        if (Array.isArray(original) && original.length > 0) {
+            // Restore from the frozen original snapshot stored alongside the
+            // active history entry — this is the original processed output,
+            // not just the in-session initialHTML.
+            this.renderFromBlocks(original);
+            this.initialHTML = this.blocksContainer?.innerHTML || '';
+        } else if (this.blocksContainer && this.initialHTML) {
+            // Fallback for any pre-history flow
+            this.blocksContainer.innerHTML = this.initialHTML;
+            this.blocksContainer = document.getElementById('blocksContainer');
+        } else {
+            return;
+        }
+
         this.undoStack = [];
         this.redoStack = [];
-        // Clear persisted edits so they don't get re-applied on next load
-        window.peelbackApp?.historyManager?.clearEdits();
+        // Persist the reverted state — overwrites entry.blocks back to original
         this.updateCache();
         this.updateHistoryButtons();
         console.log('✓ All changes cleared');
@@ -927,7 +939,22 @@ export class BlocksManager {
         const clearBtn = document.getElementById('blockClearBtn');
         if (undoBtn) undoBtn.disabled = this.undoStack.length === 0;
         if (redoBtn) redoBtn.disabled = this.redoStack.length === 0;
-        if (clearBtn) clearBtn.disabled = this.undoStack.length === 0 && this.redoStack.length === 0;
+        if (clearBtn) clearBtn.disabled = !this.canClear();
+    }
+
+    /**
+     * Clear is available whenever the active history entry's current blocks
+     * differ from its frozen original snapshot — including across page
+     * reloads where the in-memory undo stack is empty.
+     */
+    canClear() {
+        if (this.undoStack.length > 0 || this.redoStack.length > 0) return true;
+        const history = window.peelbackApp?.historyManager;
+        const original = history?.getOriginalBlocks?.();
+        if (!Array.isArray(original) || original.length === 0) return false;
+        const current = history?.snapshotBlocksFromDOM?.();
+        if (!Array.isArray(current)) return false;
+        return JSON.stringify(current) !== JSON.stringify(original);
     }
 
     removeBlock(blockElement) {

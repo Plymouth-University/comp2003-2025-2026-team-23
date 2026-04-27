@@ -44,10 +44,22 @@ export class ProcessingManager {
 
     async startProcessing() {
         if (this.isProcessing) return;
-        
+
         this.isProcessing = true;
         this.progressSection.classList.add('active');
-        
+
+        // Lock the button for the duration of the run — updateButtonState
+        // can't re-enable it because we set our own disabled flag here, and
+        // the input panel doesn't change until processing completes.
+        this.processBtn.disabled = true;
+        this.processBtn.style.backgroundColor = '#999';
+        this.processBtn.style.cursor = 'not-allowed';
+
+        // Clear the output area for the new run. Must detach from the active
+        // history entry FIRST so any DOM mutations during teardown can't
+        // write an empty blocks array back over the previous entry.
+        this.clearOutput();
+
         const stages = [
             { percent: 20, text: 'Extracting text...' },
             { percent: 50, text: 'Analyzing content...' },
@@ -71,6 +83,25 @@ export class ProcessingManager {
         this.showResults(reqResponse);
         this.resetProgress();
         this.isProcessing = false;
+
+        // Reset the left input panel to its natural empty state. The events
+        // dispatched by these resets will fire updateButtonState, which keeps
+        // the process button disabled until the user uploads + selects again.
+        this.processBtn.style.cursor = '';
+        this.resetInputPanel();
+    }
+
+    /**
+     * Returns the left-side input panel to its natural state: clears the
+     * uploaded file, deselects the audience card, and resets the complexity
+     * slider to its default. The user must re-supply all inputs before the
+     * process button re-enables.
+     */
+    resetInputPanel() {
+        const app = window.peelbackApp;
+        if (!app) return;
+        app.uploadManager?.resetUpload?.();
+        app.controlsManager?.clearSelections?.();
     }
 
     updateProgress(percent, text) {
@@ -79,6 +110,44 @@ export class ProcessingManager {
             this.progressText.textContent = text;
             resolve();
         });
+    }
+
+    /**
+     * Wipes the output area at the start of a new processing run without
+     * touching any persisted history entries.
+     *
+     * Order is important:
+     *  1. Detach from the active history entry so subsequent snapshotFromDOM
+     *     calls are no-ops and cannot mutate the previous entry's blocks.
+     *  2. Clear the cached blocksHTML and the live tabContent DOM.
+     *  3. Reset BlocksManager's in-memory state (initialHTML, undo/redo).
+     */
+    clearOutput() {
+        const app = window.peelbackApp;
+        if (!app) return;
+
+        // 1. Detach from history BEFORE touching the DOM
+        if (app.historyManager) {
+            app.historyManager.currentEntryId = null;
+        }
+
+        // 2. Clear cached HTML and the visible output
+        if (app.resultsManager) {
+            app.resultsManager.blocksHTML = null;
+        }
+        const tabContent = document.getElementById('tabContent');
+        if (tabContent) {
+            tabContent.innerHTML = '';
+        }
+
+        // 3. Reset the blocks editor's in-memory state
+        if (app.blocksManager) {
+            app.blocksManager.blocksContainer = null;
+            app.blocksManager.initialHTML = null;
+            app.blocksManager.undoStack = [];
+            app.blocksManager.redoStack = [];
+            app.blocksManager.updateHistoryButtons?.();
+        }
     }
 
     showResults(reqResponse) {
