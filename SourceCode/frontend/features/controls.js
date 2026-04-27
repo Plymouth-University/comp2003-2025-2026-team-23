@@ -79,6 +79,21 @@ export class ControlsManager {
         return labels[this.complexityLevel - 1];
     }
 
+    setAudience(audience) {
+        const card = [...this.audienceCards].find(c => c.dataset.audience === audience);
+        if (card) this.selectAudience(audience, card);
+    }
+
+    setComplexityLevel(value) {
+        this.complexityLevel = value;
+        if (this.complexitySlider) {
+            this.complexitySlider.value = value;
+            const percentage = ((value - 1) / 4) * 100;
+            this.complexitySlider.style.setProperty('--value', `${percentage}%`);
+        }
+        this.updateSliderDisplay();
+    }
+
     updateSliderDisplay() {
     if (this.sliderValue && this.complexitySlider) {
         const percentage = ((this.complexityLevel - 1) / 4) * 100;

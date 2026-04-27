@@ -84,20 +84,45 @@ export class ProcessingManager {
     showResults(reqResponse) {
         const emptyState = document.getElementById('emptyState');
         const resultsContainer = document.getElementById('resultsContainer');
-        
+
         if (emptyState) emptyState.style.display = 'none';
         if (resultsContainer) resultsContainer.style.display = 'flex';
-        
-        // Load block into summary tab
+
+        const app = window.peelbackApp;
+
         if (reqResponse && Array.isArray(reqResponse.blocks) && reqResponse.blocks.length > 0) {
-        // Real API response
-        window.peelbackApp.blocksManager.renderBlocks(reqResponse.blocks);
-        console.log('✓ Results displayed from API response');
+            app.blocksManager.renderBlocks(reqResponse.blocks);
+            console.log('✓ Results displayed from API response');
+
+            // Persist to history — addHistoryItem reads blocks from the DOM
+            // via snapshotBlocksFromDOM, so renderBlocks must run first.
+            const audience = app.controlsManager.getSelectedAudience() || 'patient';
+            const paperName = this.extractPaperName(reqResponse.blocks)
+                || app.uploadManager.uploadedFile?.name?.replace(/\.[^.]+$/, '')
+                || 'Unknown Paper';
+            app.historyManager.addHistoryItem({
+                paperName,
+                audience,
+                complexity: app.controlsManager.getComplexityLevel(),
+            });
         } else {
-            // Fallback to mock if API failed or returned empty
             console.warn('API response invalid or empty, falling back to mock');
-            window.peelbackApp.blocksManager.loadMockBlocks();
+            app.blocksManager.loadMockBlocks();
+
+            const audience = app.controlsManager.getSelectedAudience() || 'patient';
+            const fileName = app.uploadManager.uploadedFile?.name?.replace(/\.[^.]+$/, '');
+            app.historyManager.addHistoryItem({
+                paperName: fileName || 'Sample Document',
+                audience,
+                complexity: app.controlsManager.getComplexityLevel(),
+            });
         }
+    }
+
+    extractPaperName(blocksData) {
+        const titleBlock = blocksData.find(b => b.type === 'title');
+        if (titleBlock?.data?.title) return titleBlock.data.title;
+        return null;
     }
 
     resetProgress() {

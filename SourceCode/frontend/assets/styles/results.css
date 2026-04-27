@@ -41,9 +41,11 @@
 /* Tabs Container */
 .tabs {
     display: flex;
-    justify-content: space-between; /* Push left and right apart */
+    justify-content: flex-start;
     align-items: center;
     padding: var(--spacing-lg);
+    /* right padding leaves room for the absolutely-positioned history button */
+    padding-right: 140px;
     background-color: #FAFAFA;
     border-bottom: none;
 }
@@ -54,13 +56,12 @@
     gap: var(--spacing-lg);
 }
 
-.tabs-right {
-    display: flex;
-    align-items: center;
-}
-
-/* History Button */
+/* History Button — pinned to top-right of the right panel at all times */
 .btn-history {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    z-index: 5;
     background-color: white;
     border: 2px solid var(--border-light);
     padding: 10px 20px;
@@ -70,7 +71,7 @@
     font-weight: 500;
     color: var(--text-secondary);
     transition: all 0.2s ease;
-    display: none;
+    display: flex;
     align-items: center;
     gap: var(--spacing-xs);
     box-shadow: var(--shadow-sm);
