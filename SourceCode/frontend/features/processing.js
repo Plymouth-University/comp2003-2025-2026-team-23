@@ -68,7 +68,7 @@ export class ProcessingManager {
         ];
 
         // Attempt to get a request
-        await this.updateProgress(0, "Sending request...");
+        await this.updateProgress(10, "Sending request...");
 
         let reqResponse = await peelbackApp.requestManager.requestSimplification();
         console.log("Raw response:", reqResponse);
