@@ -79,6 +79,38 @@ export class ControlsManager {
         return labels[this.complexityLevel - 1];
     }
 
+    setAudience(audience) {
+        const card = [...this.audienceCards].find(c => c.dataset.audience === audience);
+        if (card) this.selectAudience(audience, card);
+    }
+
+    setComplexityLevel(value) {
+        this.complexityLevel = value;
+        if (this.complexitySlider) {
+            this.complexitySlider.value = value;
+            const percentage = ((value - 1) / 4) * 100;
+            this.complexitySlider.style.setProperty('--value', `${percentage}%`);
+        }
+        this.updateSliderDisplay();
+    }
+
+    /**
+     * Returns the audience and complexity controls to their natural default
+     * state. Dispatches audienceChanged so listeners (e.g. process button
+     * gating) re-evaluate.
+     */
+    clearSelections() {
+        this.selectedAudience = null;
+        if (this.audienceHiddenInput) this.audienceHiddenInput.value = '';
+        this.audienceCards.forEach(card => card.classList.remove('selected'));
+
+        this.setComplexityLevel(3);
+
+        document.dispatchEvent(new CustomEvent('audienceChanged', {
+            detail: { audience: null }
+        }));
+    }
+
     updateSliderDisplay() {
     if (this.sliderValue && this.complexitySlider) {
         const percentage = ((this.complexityLevel - 1) / 4) * 100;

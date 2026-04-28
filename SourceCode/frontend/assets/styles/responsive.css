@@ -175,19 +175,6 @@
         font-size: 13px;
     }
     
-    .action-buttons {
-        padding: var(--spacing-sm);
-        gap: var(--spacing-xs);
-    }
-    
-    .btn-action {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .action-icon {
-        font-size: 16px;
-    }
 }
 
 /* Landscape orientation adjustments */
@@ -229,8 +216,7 @@
     .upload-box,
     .btn-upload,
     .btn-process,
-    .tab,
-    .btn-action {
+    .tab {
         box-shadow: var(--shadow-sm);
     }
 }

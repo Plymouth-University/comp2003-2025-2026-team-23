@@ -82,6 +82,10 @@ export class BlocksManager {
             blockOrder: []
         };
 
+        this.undoStack = [];
+        this.redoStack = [];
+        this.initialHTML = null;
+
         this.listenersAttached = false;
         this.fullWidthOnly = new Set(['title']);
 
@@ -111,19 +115,110 @@ export class BlocksManager {
     setupGlobalListeners() {
         if (this.listenersAttached) return;
 
+        // Editing Mode toggle
+        const editingToggle = document.getElementById('editingModeToggle');
+        if (editingToggle) {
+            editingToggle.addEventListener('change', () => {
+                this.setEditingMode(editingToggle.checked);
+            });
+        }
+
+        // History buttons — delegated so they survive bar re-renders on tab switch
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            if (btn.id === 'blockUndoBtn') this.undo();
+            else if (btn.id === 'blockRedoBtn') this.redo();
+            else if (btn.id === 'blockClearBtn') this.clearAllChanges();
+        });
+
         document.addEventListener('click', (e) => {
             if (this.isDragging) return;
-            if (e.target.classList.contains('btn-edit-block')) {
-                this.toggleEdit(e.target.closest('.block'), e.target);
-            }
             if (e.target.classList.contains('btn-remove-block')) {
                 this.removeBlock(e.target.closest('.block'));
+                return;
             }
+            if (e.target.classList.contains('btn-save-block')) {
+                const block = e.target.closest('.block');
+                const content = block?.querySelector('.block-content[data-editable-mode]');
+                if (content) this.endBlockEdit(content);
+                return;
+            }
+            // Click-to-edit when editing mode is on
+            if (document.getElementById('editingModeToggle')?.checked) {
+                const content = e.target.closest('.block-content[data-editable-mode]');
+                if (content && content.contentEditable !== 'true') {
+                    this.startBlockEdit(content);
+                }
+            }
+        });
+
+        document.addEventListener('focusout', (e) => {
+            const content = e.target.closest ? e.target : null;
+            if (content && content.classList?.contains('block-content') && content.contentEditable === 'true') {
+                // Small delay so a click on btn-save-block isn't swallowed by blur
+                setTimeout(() => {
+                    if (content.contentEditable === 'true') this.endBlockEdit(content);
+                }, 100);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const content = document.activeElement;
+            if (!content?.classList?.contains('block-content') || content.contentEditable !== 'true') return;
+            if (e.shiftKey) {
+                // Shift+Enter: insert line break
+                e.preventDefault();
+                const sel = window.getSelection();
+                if (!sel || sel.rangeCount === 0) return;
+                const range = sel.getRangeAt(0);
+                range.deleteContents();
+                const br = document.createElement('br');
+                range.insertNode(br);
+                // Move caret after the <br>
+                range.setStartAfter(br);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else {
+                // Enter: save
+                e.preventDefault();
+                content.blur();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.isDragging) {
+                    this.cancelDrag();
+                } else {
+                    // Exit any active block edit
+                    const active = document.querySelector('.block-content[contenteditable="true"]');
+                    if (active) active.blur();
+                }
+            }
+        });
+
+        // Debounced input capture — records every keystroke per block so a
+        // mid-edit reload still preserves what the user typed
+        this._inputDebounce = null;
+        document.addEventListener('input', (e) => {
+            const content = e.target.closest?.('.block-content');
+            if (!content || content.contentEditable !== 'true') return;
+            const block = content.closest('.block');
+            const blockId = block?.dataset.blockId;
+            if (!blockId) return;
+            clearTimeout(this._inputDebounce);
+            this._inputDebounce = setTimeout(() => {
+                window.peelbackApp?.historyManager?.recordEdit(blockId, content.innerHTML);
+            }, 300);
         });
 
         document.addEventListener('pointerdown', (e) => {
             const handle = e.target.closest('.drag-handle');
             if (!handle) return;
+            if (!document.getElementById('editingModeToggle')?.checked) return;
             const block = handle.closest('.block');
             if (!block || this.fullWidthOnly.has(block.dataset.blockType)) return;
             e.preventDefault();
@@ -142,9 +237,6 @@ export class BlocksManager {
             this.endDrag();
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isDragging) this.cancelDrag();
-        });
 
         this.listenersAttached = true;
         console.log('✓ Global listeners attached');
@@ -155,7 +247,14 @@ export class BlocksManager {
     // ═══════════════════════════════════════════
     loadMockBlocks() {
         if (this.tabContent) {
-            this.renderBlocks(this.getMockData());
+            this.tabContent.innerHTML = this.getMockBlocksHTML();
+            this.blocksContainer = document.getElementById('blocksContainer');
+            this.reflowLayout();
+            this.initialHTML = this.blocksContainer.innerHTML;
+            this.undoStack = [];
+            this.redoStack = [];
+            this.updateHistoryButtons();
+            this.updateCache();
             console.log('✓ Mock blocks loaded');
         }
     }
@@ -163,7 +262,8 @@ export class BlocksManager {
     reinitialize() {
         this.blocksContainer = document.getElementById('blocksContainer');
         if (!this.blocksContainer) return;
-        this.reflowLayout();
+        // Do NOT call reflowLayout() here — the cached HTML already has the
+        // correct data-span values set by the user; recalculating would override them.
         console.log('✓ Blocks reinitialized');
     }
 
@@ -325,9 +425,20 @@ export class BlocksManager {
     // ═══════════════════════════════════════════
     endDrag() {
         if (this.activeZone) {
+            const before = this.getBlocks().map(b => ({ el: b, span: b.dataset.span }));
             this.executeDrop(this.activeZone);
+            const after = this.getBlocks().map(b => ({ el: b, span: b.dataset.span }));
+            const changed = before.length !== after.length ||
+                before.some((b, i) => b.el !== after[i]?.el || b.span !== after[i]?.span);
+            if (changed) {
+                this.undoStack.push({ type: 'move', before, after });
+                this.redoStack = [];
+                this.updateHistoryButtons();
+            }
         }
         this.cleanupDrag();
+        // Cache AFTER cleanup so block-dragging class is gone from the snapshot
+        this.updateCache();
     }
 
     cancelDrag() {
@@ -383,7 +494,6 @@ export class BlocksManager {
             this.fixOrphans();
         }
 
-        this.updateCache();
         console.log(`✓ Dropped → ${zone.type}${zone.side ? '-' + zone.side : ''}`);
     }
 
@@ -446,109 +556,414 @@ export class BlocksManager {
     }
 
     updateCache() {
-        if (window.peelbackApp && window.peelbackApp.resultsManager) {
-            window.peelbackApp.resultsManager.cacheBlocksHTML();
-        }
+        const app = window.peelbackApp;
+        if (!app) return;
+        app.resultsManager?.cacheBlocksHTML();
+        // Structured snapshot — single source of truth for the active entry
+        app.historyManager?.snapshotFromDOM();
+    }
+
+    resetHistoryState() {
+        this.blocksContainer = document.getElementById('blocksContainer');
+        if (!this.blocksContainer) return;
+        this.initialHTML = this.blocksContainer.innerHTML;
+        this.undoStack = [];
+        this.redoStack = [];
+        this.updateHistoryButtons();
+    }
+
+    /**
+     * Deterministically renders blocks from a structured array
+     * (id, type, span, contentHTML). This is the load path for history
+     * entries — no parsing, no cloning, no reflow side effects.
+     */
+    renderFromBlocks(blocks) {
+        if (!this.tabContent || !Array.isArray(blocks)) return;
+
+        const html = blocks.map(({ id, type, span, contentHTML }) => {
+            const schema = this.BLOCK_SCHEMA[type];
+            if (!schema) return '';
+            const { editable, removable, cssClass } = schema;
+            const safeSpan = span === 2 ? 2 : 1;
+            return `
+                <div class="block ${cssClass}" data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}" data-span="${safeSpan}">
+                    <div class="block-header">
+                        ${type !== 'title' ? '<span class="drag-handle">⋮⋮</span>' : ''}
+                        ${editable  ? '<button class="btn-save-block">Save changes</button>'       : ''}
+                        ${removable ? '<button class="btn-remove-block" title="Remove">✕</button>' : ''}
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        ${contentHTML || ''}
+                    </div>
+                </div>`;
+        }).join('');
+
+        this.tabContent.innerHTML = `<div class="blocks-container" id="blocksContainer">${html}</div>`;
+        this.blocksContainer = document.getElementById('blocksContainer');
+        console.log(`✓ Rendered ${blocks.length} blocks from history state`);
     }
 
     // ═══════════════════════════════════════════
     //  MOCK BLOCKS HTML
     // ═══════════════════════════════════════════
-    getMockData() {
-        return [
-            {
-                type: 'title',
-                data: { title: 'Understanding patient views and acceptability of predictive software in osteoporosis identification' }
-            },
-            {
-                type: 'author',
-                data: {
-                    authors: [
-                        { initials: 'FM', name: 'F. Manning', department: 'Department of Health and Care Professions', institution: 'University of Exeter Medical School, Exeter, UK' }
-                    ]
-                }
-            },
-            {
-                type: 'publication_info',
-                data: { published: '2023 (Radiography, Vol. 29)', doi: '10.1016/j.radi.2023.01.015' }
-            },
-            {
-                type: 'sample_info',
-                data: {
-                    items: [
-                        { label: 'Sample Size',   value: '14 participants' },
-                        { label: 'Age Range',     value: '55-80 years'     },
-                        { label: 'Gender Split',  value: '79% Female, 21% Male' },
-                        { label: 'Study Type',    value: 'Qualitative (focus groups)' }
-                    ]
-                }
-            },
-            {
-                type: 'summary',
-                data: { heading: 'Summary', body: 'This study explored how patients feel about using predictive software to identify osteoporosis risk from routine X-rays. Researchers spoke with 14 people aged 55-80 who were already attending screening appointments.' }
-            },
-            {
-                type: 'text_section',
-                data: { heading: 'Concerns', body: 'Some participants worried about receiving an unexpected diagnosis through a screening tool they did not fully understand.' }
-            },
-            {
-                type: 'stats',
-                data: {
-                    items: [
-                        { label: 'Mean Age',           value: '69.5 years'        },
-                        { label: 'Follow-up Duration', value: '18 months'         },
-                        { label: 'Primary Outcome',    value: 'Fracture incidence' }
-                    ]
-                }
-            },
-            {
-                type: 'key_findings',
-                data: {
-                    heading: 'Key Findings',
-                    items: [
-                        'Participants expressed concerns about receiving unexpected diagnoses without clinical context',
-                        'Strong preference for healthcare professional to deliver and explain results',
-                        'Benefits seen in early identification of osteoporosis risk through routine imaging'
-                    ]
-                }
-            },
-            {
-                type: 'implications',
-                data: { heading: 'What This Means for You', body: 'If you\'re having routine X-rays, this technology could help spot bone weakness early, giving you time to make changes or start treatment before a fracture happens.' }
-            },
-            {
-                type: 'recommendations',
-                data: {
-                    heading: 'Recommendations',
-                    items: [
-                        'Discuss predictive screening options with your healthcare provider during your next appointment',
-                        'Ask questions about how results would be delivered and explained',
-                        'Consider lifestyle changes (calcium, vitamin D, exercise) if you\'re at risk for osteoporosis'
-                    ]
-                }
-            }
-        ];
+    getMockBlocksHTML() {
+        return `
+            <div class="blocks-container" id="blocksContainer">
+                <div class="block title-block" data-block-id="1" data-block-type="title" data-editable="true" data-removable="false">
+                    <div class="block-header">
+                        <button class="btn-save-block">Save changes</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h1 class="block-title">Understanding patient views and acceptability of predictive software in osteoporosis identification</h1>
+                    </div>
+                </div>
+
+                <div class="block author-block" data-block-id="2" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#E5E7EB;color:#6366F1;">FM</div>
+                        <div class="author-info">
+                            <h4>F. Manning</h4>
+                            <p>Department of Health and Care Professions</p>
+                            <p>University of Exeter Medical School, Exeter, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block author-block" data-block-id="3" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#E0F2FE;color:#0369A1;">LR</div>
+                        <div class="author-info">
+                            <h4>L. Roberts</h4>
+                            <p>Department of Radiology</p>
+                            <p>University College London, London, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block author-block" data-block-id="4" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#FEF3C7;color:#92400E;">AC</div>
+                        <div class="author-info">
+                            <h4>A. Chen</h4>
+                            <p>Institute of Health Informatics</p>
+                            <p>King's College London, London, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block author-block" data-block-id="5" data-block-type="author" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="author-avatar" style="background:#F0FDF4;color:#166534;">MW</div>
+                        <div class="author-info">
+                            <h4>M. Williams</h4>
+                            <p>School of Medicine</p>
+                            <p>University of Birmingham, Birmingham, UK</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block publication-block" data-block-id="6" data-block-type="publication_info" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="pub-item"><span class="pub-label">Published:</span><span class="pub-value">2023 (Radiography, Vol. 29)</span></div>
+                        <div class="pub-item"><span class="pub-label">DOI:</span><span class="pub-value">10.1016/j.radi.2023.01.015</span></div>
+                    </div>
+                </div>
+
+                <div class="block sample-info-block" data-block-id="7" data-block-type="sample_info" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <div class="sample-grid">
+                            <div class="sample-item"><span class="sample-label">Sample Size</span><span class="sample-value">14 participants</span></div>
+                            <div class="sample-item"><span class="sample-label">Age Range</span><span class="sample-value">55-80 years</span></div>
+                            <div class="sample-item"><span class="sample-label">Gender Split</span><span class="sample-value">79% Female, 21% Male</span></div>
+                            <div class="sample-item"><span class="sample-label">Study Type</span><span class="sample-value">Qualitative (focus groups)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block summary-block" data-block-id="8" data-block-type="summary" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h3>Summary</h3>
+                        <p>This study explored how patients feel about using predictive software to identify osteoporosis risk from routine X-rays. Researchers spoke with 14 people aged 55-80 who were already attending screening appointments. While participants saw benefits in catching bone problems early, they were concerned about getting unexpected results without proper explanation from a healthcare professional.</p>
+                    </div>
+                </div>
+
+                <div class="block text-block" data-block-id="9" data-block-type="text_section" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h3>Concerns</h3>
+                        <p>Some participants worried about receiving an unexpected diagnosis through a screening tool they did not fully understand. There was concern that results delivered without explanation could cause anxiety or confusion, especially if the finding was serious or unexpected.</p>
+                    </div>
+                </div>
+
+                <div class="block stats-block" data-block-id="10" data-block-type="stats" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h3>Key Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item"><span class="stat-label">Response Rate</span><span class="stat-value">87%</span></div>
+                            <div class="stat-item"><span class="stat-label">Mean Age</span><span class="stat-value">67.5 years</span></div>
+                            <div class="stat-item"><span class="stat-label">Follow-up Duration</span><span class="stat-value">18 months</span></div>
+                            <div class="stat-item"><span class="stat-label">Primary Outcome</span><span class="stat-value">Fracture incidence</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block findings-block" data-block-id="11" data-block-type="key_findings" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h3>Key Findings</h3>
+                        <ul>
+                            <li>Participants expressed concerns about receiving unexpected diagnoses without clinical context</li>
+                            <li>Strong preference for healthcare professional to deliver and explain results</li>
+                            <li>Benefits seen in early identification of osteoporosis risk through routine imaging</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="block implications-block" data-block-id="12" data-block-type="implications" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h3>What This Means for You</h3>
+                        <p>If you're having routine X-rays, this technology could help spot bone weakness early, giving you time to make changes or start treatment before a fracture happens. However, it's important that results are explained clearly by a healthcare professional who can answer your questions and discuss next steps with you.</p>
+                    </div>
+                </div>
+
+                <div class="block recommendations-block" data-block-id="13" data-block-type="recommendations" data-editable="true" data-removable="true">
+                    <div class="block-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <button class="btn-save-block">Save changes</button>
+                        <button class="btn-remove-block" title="Remove">✕</button>
+                    </div>
+                    <div class="block-content" contenteditable="false" data-editable-mode="true">
+                        <h3>Recommendations</h3>
+                        <ul>
+                            <li>Discuss predictive screening options with your healthcare provider during your next appointment</li>
+                            <li>Ask questions about how results would be delivered and explained</li>
+                            <li>Consider lifestyle changes (calcium, vitamin D, exercise) if you're at risk for osteoporosis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // ═══════════════════════════════════════════
-    //  EDIT / REMOVE
+    //  EDITING MODE
     // ═══════════════════════════════════════════
-    toggleEdit(blockElement, editBtn) {
-        if (!blockElement || blockElement.dataset.editable !== 'true') return;
-        const content = blockElement.querySelector('.block-content');
-        if (content.contentEditable === 'true') {
-            content.contentEditable = 'false';
-            editBtn.textContent = '✏️';
-            this.updateCache();
-        } else {
-            content.contentEditable = 'true';
-            editBtn.textContent = '💾';
-            content.focus();
+    setEditingMode(enabled) {
+        const container = document.getElementById('blocksContainer');
+        if (!container) return;
+        const editableContents = container.querySelectorAll('.block-content[data-editable-mode]');
+        editableContents.forEach(content => {
+            if (enabled) {
+                content.classList.add('editing-mode-active');
+            } else {
+                content.classList.remove('editing-mode-active');
+                if (content.contentEditable === 'true') {
+                    this.endBlockEdit(content);
+                }
+            }
+        });
+        console.log(`✓ Editing mode ${enabled ? 'ON' : 'OFF'}`);
+    }
+
+    startBlockEdit(content) {
+        content._preEditHTML = content.innerHTML;
+        content.contentEditable = 'true';
+        content.classList.add('block-editing');
+        content.closest('.block')?.classList.add('block-active-edit');
+        content.focus();
+        // Place cursor at end
+        const range = document.createRange();
+        range.selectNodeContents(content);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    endBlockEdit(content) {
+        const oldHTML = content._preEditHTML;
+        const newHTML = content.innerHTML;
+        if (oldHTML !== undefined && oldHTML !== newHTML) {
+            this.undoStack.push({ type: 'edit', content, oldHTML, newHTML });
+            this.redoStack = [];
+            this.updateHistoryButtons();
         }
+        delete content._preEditHTML;
+        content.contentEditable = 'false';
+        content.classList.remove('block-editing');
+        content.closest('.block')?.classList.remove('block-active-edit');
+
+        // Final flush — persist this edit immediately so reload always sees it
+        const blockId = content.closest('.block')?.dataset.blockId;
+        if (blockId) {
+            clearTimeout(this._inputDebounce);
+            window.peelbackApp?.historyManager?.recordEdit(blockId, newHTML);
+        }
+
+        this.updateCache();
+    }
+
+    // ═══════════════════════════════════════════
+    //  UNDO / REDO / CLEAR
+    // ═══════════════════════════════════════════
+    undo() {
+        const action = this.undoStack.pop();
+        if (!action || !this.blocksContainer) return;
+        if (action.type === 'remove') {
+            // Clear any leftover animation styles before re-inserting
+            action.element.style.opacity = '';
+            action.element.style.transform = '';
+            action.element.style.transition = '';
+            action.element.dataset.span = action.span;
+            const blocks = this.getBlocks();
+            if (action.index >= blocks.length) {
+                this.blocksContainer.appendChild(action.element);
+            } else {
+                this.blocksContainer.insertBefore(action.element, blocks[action.index]);
+            }
+            this.fixOrphans();
+        } else if (action.type === 'edit') {
+            action.content.innerHTML = action.oldHTML;
+        } else if (action.type === 'move') {
+            action.before.forEach(({ el, span }) => {
+                el.dataset.span = span;
+                this.blocksContainer.appendChild(el);
+            });
+        }
+        this.redoStack.push(action);
+        this.updateCache();
+        this.updateHistoryButtons();
+    }
+
+    redo() {
+        const action = this.redoStack.pop();
+        if (!action || !this.blocksContainer) return;
+        if (action.type === 'remove') {
+            action.element.remove();
+            this.fixOrphans();
+        } else if (action.type === 'edit') {
+            action.content.innerHTML = action.newHTML;
+        } else if (action.type === 'move') {
+            action.after.forEach(({ el, span }) => {
+                el.dataset.span = span;
+                this.blocksContainer.appendChild(el);
+            });
+        }
+        this.undoStack.push(action);
+        this.updateCache();
+        this.updateHistoryButtons();
+    }
+
+    clearAllChanges() {
+        const history = window.peelbackApp?.historyManager;
+        const original = history?.getOriginalBlocks?.();
+
+        if (Array.isArray(original) && original.length > 0) {
+            // Restore from the frozen original snapshot stored alongside the
+            // active history entry — this is the original processed output,
+            // not just the in-session initialHTML.
+            this.renderFromBlocks(original);
+            this.initialHTML = this.blocksContainer?.innerHTML || '';
+        } else if (this.blocksContainer && this.initialHTML) {
+            // Fallback for any pre-history flow
+            this.blocksContainer.innerHTML = this.initialHTML;
+            this.blocksContainer = document.getElementById('blocksContainer');
+        } else {
+            return;
+        }
+
+        this.undoStack = [];
+        this.redoStack = [];
+        // Persist the reverted state — overwrites entry.blocks back to original
+        this.updateCache();
+        this.updateHistoryButtons();
+        console.log('✓ All changes cleared');
+    }
+
+    updateHistoryButtons() {
+        const undoBtn = document.getElementById('blockUndoBtn');
+        const redoBtn = document.getElementById('blockRedoBtn');
+        const clearBtn = document.getElementById('blockClearBtn');
+        if (undoBtn) undoBtn.disabled = this.undoStack.length === 0;
+        if (redoBtn) redoBtn.disabled = this.redoStack.length === 0;
+        if (clearBtn) clearBtn.disabled = !this.canClear();
+    }
+
+    /**
+     * Clear is available whenever the active history entry's current blocks
+     * differ from its frozen original snapshot — including across page
+     * reloads where the in-memory undo stack is empty.
+     */
+    canClear() {
+        if (this.undoStack.length > 0 || this.redoStack.length > 0) return true;
+        const history = window.peelbackApp?.historyManager;
+        const original = history?.getOriginalBlocks?.();
+        if (!Array.isArray(original) || original.length === 0) return false;
+        const current = history?.snapshotBlocksFromDOM?.();
+        if (!Array.isArray(current)) return false;
+        return JSON.stringify(current) !== JSON.stringify(original);
     }
 
     removeBlock(blockElement) {
         if (!blockElement || blockElement.dataset.removable !== 'true') return;
+        if (!document.getElementById('editingModeToggle')?.checked) return;
+        const index = this.getBlocks().indexOf(blockElement);
+        this.undoStack.push({ type: 'remove', element: blockElement, index, span: blockElement.dataset.span });
+        this.redoStack = [];
+        this.updateHistoryButtons();
         blockElement.style.opacity = '0';
         blockElement.style.transform = 'scale(0.95)';
         blockElement.style.transition = 'opacity 0.25s, transform 0.25s';
@@ -567,7 +982,19 @@ export class BlocksManager {
     renderBlocks(blocksData) {
     if (!this.tabContent) return;
 
-    const blocksHTML = blocksData
+    // Expand author blocks so each author gets its own block, matching mock behaviour
+    const expandedData = [];
+    blocksData.forEach(({ type, data }) => {
+        if (type === 'author' && Array.isArray(data?.authors)) {
+            data.authors.forEach(author => {
+                expandedData.push({ type: 'author', data: { authors: [author] } });
+            });
+        } else {
+            expandedData.push({ type, data });
+        }
+    });
+
+    const blocksHTML = expandedData
         .filter(({ type, data }) => this.BLOCK_SCHEMA[type] && data && typeof data === 'object')
         .map(({ type, data }, index) => this.buildBlockHTML(type, data, index + 1))
         .join('');
@@ -580,7 +1007,7 @@ export class BlocksManager {
     this.blocksContainer = document.getElementById('blocksContainer');
     this.reflowLayout();
     this.updateCache();
-    console.log(`✓ Rendered ${blocksData.length} blocks`);
+    console.log(`✓ Rendered ${expandedData.length} blocks`);
     }
 
     buildBlockHTML(type, data, id) {
@@ -598,13 +1025,13 @@ export class BlocksManager {
     const { editable, removable, cssClass } = schema;
 
     return `
-        <div class="block ${cssClass}"data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}">
+        <div class="block ${cssClass}" data-block-id="${id}" data-block-type="${type}" data-editable="${editable}" data-removable="${removable}">
             <div class="block-header">
                 ${type !== 'title' ? '<span class="drag-handle">⋮⋮</span>' : ''}
-                ${editable  ? '<button class="btn-edit-block"  title="Edit">✏️</button>'   : ''}
+                ${editable  ? '<button class="btn-save-block">Save changes</button>'       : ''}
                 ${removable ? '<button class="btn-remove-block" title="Remove">✕</button>' : ''}
             </div>
-            <div class="block-content" contenteditable="false">
+            <div class="block-content" contenteditable="false" data-editable-mode="true">
                 ${content}
             </div>
         </div>`;
