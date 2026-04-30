@@ -1,15 +1,7 @@
-Welcome to the documentation of Peelback.  
-Documentation is separated hierarchically for the benefit of version control
-
-# Overview
+This documentation is developer-oriented, as of writing this on 30/04/2026 primarily extracted from the User Handbook given to Emilie Fontaine on the project hand-over on the same date.
 
 # Contents
-```
-Documentation/
-├── overview.md - Overview and documentation contents; You are here.  
-├── deployment.md - Instructions on how to deploy the service on your own machine
-└── development/ - Detailed technical specifications,  
-    ├── backend.md - An overview of the backend architecture of the system; for Harvey to write  
-    ├── frontend.md - An overview of the frontend architecture of the system  
-    └── future.md - Suggestions for future developers.
-```
+- overview.md - Overview and documentation contents; You are here.
+- backend.md - an overview of the backend architecture of the system
+- frontend.md - an overview of the frontend architecture of the system
+- future.md - suggestions for future developers
